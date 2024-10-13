@@ -2,6 +2,7 @@ from rich.console import Console
 from user_interface import UserInterface
 from game_logic import GameLogic
 from database import initialize_database
+import d20
 
 def main():
     console = Console()
@@ -27,6 +28,7 @@ def main():
         "end_turn",
         "attack Shadow Smasher",
         "status",
+        "test_d20",  # New test command to demonstrate d20 usage
         "quit"
     ]
 
@@ -35,7 +37,12 @@ def main():
             console.print(f"\n[bold cyan]Executing command:[/bold cyan] {command}")
             if command.lower() == 'quit':
                 break
-            ui.process_command(command)
+            elif command.lower() == 'test_d20':
+                # Demonstrate d20 usage
+                roll_result = d20.roll("2d6 + 3")
+                console.print(f"Test d20 roll (2d6 + 3): {roll_result}")
+            else:
+                ui.process_command(command)
             console.print("[bold green]Command executed successfully.[/bold green]")
     except Exception as e:
         console.print(f"[bold red]An unexpected error occurred in main loop:[/bold red] {str(e)}")

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
+    "d20>=1.1.2",
     "pydantic>=2.9.2",
     "rich>=13.9.2",
     "tinydb>=4.8.2",

@@ -15,6 +15,34 @@ wheels = [
 ]
 
 [[package]]
+name = "cachetools"
+version = "5.5.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/38/a0f315319737ecf45b4319a8cd1f3a908e29d9277b46942263292115eee7/cachetools-5.5.0.tar.gz", hash = "sha256:2cc24fb4cbe39633fb7badd9db9ca6295d766d9c2995f245725a46715d050f2a", size = 27661 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/07/14f8ad37f2d12a5ce41206c21820d8cb6561b728e51fad4530dff0552a67/cachetools-5.5.0-py3-none-any.whl", hash = "sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292", size = 9524 },
+]
+
+[[package]]
+name = "d20"
+version = "1.1.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cachetools" },
+    { name = "lark-parser" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2e/67/cf32c74c91fe101834e4f3a9f4e27b7be8356a98360f8d8f7950e1fe95e9/d20-1.1.2.tar.gz", hash = "sha256:53bc0ac375deeb84bcbb736ef5b3a72656a265732720fa3e5548dd5b38cb20f5", size = 22939 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/52/ec/67f5010bd5965099bb983de6922a4b215806859d85bedf505ff655ee3056/d20-1.1.2-py3-none-any.whl", hash = "sha256:1195bfc643aa4bd984bf6d26327491795272bfab8b19ac15108b4352a9de3166", size = 20681 },
+]
+
+[[package]]
+name = "lark-parser"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/ac/c873c508dc2955da6eb85f0425e991a022cf2a4e53933ac057603d0cf890/lark-parser-0.9.0.tar.gz", hash = "sha256:9e7589365d6b6de1cca40b0eaec31104a3fb96a37a11a9dfd5098e95b50aa6cd", size = 298176 }
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -110,6 +138,7 @@ name = "repl-nix-workspace"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "d20" },
     { name = "pydantic" },
     { name = "rich" },
     { name = "tinydb" },
@@ -117,6 +146,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "d20", specifier = ">=1.1.2" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "rich", specifier = ">=13.9.2" },
     { name = "tinydb", specifier = ">=4.8.2" },

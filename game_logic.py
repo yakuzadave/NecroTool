@@ -1,4 +1,4 @@
-import random
+import d20
 from models import GameState, Gang, GangMember, Weapon, Equipment, SpecialRule, Battlefield, Tile
 from database import Database
 
@@ -78,13 +78,13 @@ class GameLogic:
         ])
 
         for _ in range(5):
-            x, y = random.randint(0, 9), random.randint(0, 9)
+            x, y = d20.roll("1d10-1").total, d20.roll("1d10-1").total
             battlefield.tiles[y * 10 + x].type = "cover"
 
         for _ in range(3):
-            x, y = random.randint(0, 9), random.randint(0, 9)
+            x, y = d20.roll("1d10-1").total, d20.roll("1d10-1").total
             battlefield.tiles[y * 10 + x].type = "elevation"
-            battlefield.tiles[y * 10 + x].elevation = random.randint(1, 2)
+            battlefield.tiles[y * 10 + x].elevation = d20.roll("1d2").total
 
         return GameState(gangs=[gang1, gang2], battlefield=battlefield)
 
@@ -130,9 +130,9 @@ class GameLogic:
             return self.resolve_ranged_attack(attacker, target, weapon, hit_modifier)
 
     def resolve_melee_attack(self, attacker, target, weapon, hit_modifier):
-        hit_roll = random.randint(1, 6) + hit_modifier
+        hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
         if hit_roll >= attacker.weapon_skill:
-            wound_roll = random.randint(1, 6)
+            wound_roll = d20.roll("1d6").total
             to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
             if wound_roll >= to_wound:
                 damage = self.resolve_damage(weapon, target)
@@ -143,9 +143,9 @@ class GameLogic:
             return f"{attacker.name} missed {target.name}"
 
     def resolve_ranged_attack(self, attacker, target, weapon, hit_modifier):
-        hit_roll = random.randint(1, 6) + hit_modifier
+        hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
         if hit_roll >= attacker.ballistic_skill:
-            wound_roll = random.randint(1, 6)
+            wound_roll = d20.roll("1d6").total
             to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
             if wound_roll >= to_wound:
                 damage = self.resolve_damage(weapon, target)
@@ -169,7 +169,7 @@ class GameLogic:
 
     def resolve_damage(self, weapon, target):
         damage = weapon.damage
-        armor_save = random.randint(1, 6)
+        armor_save = d20.roll("1d6").total
         if armor_save + weapon.armor_penetration >= 4:  # Simplified armor save
             damage = 0
         
