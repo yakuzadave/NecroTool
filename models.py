@@ -17,6 +17,7 @@ class Equipment(BaseModel):
 class SpecialRule(BaseModel):
     name: str
     description: str
+    effect: str
 
 class GangMember(BaseModel):
     name: str = Field(..., description="Name of the gang member")
@@ -47,6 +48,7 @@ class Gang(BaseModel):
     name: str
     members: List[GangMember]
     credits: int = 1000
+    special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the entire gang")
 
 class Tile(BaseModel):
     x: int

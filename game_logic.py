@@ -121,36 +121,82 @@ class GameLogic:
             return "Target not found"
 
         weapon = attacker.weapons[0]  # Use the first weapon for simplicity
-        hit_roll = random.randint(1, 6)
         
-        if weapon.range == "Melee":  # Melee attack
-            if hit_roll >= attacker.weapon_skill:
-                wound_roll = random.randint(1, 6)
-                if wound_roll >= 4:  # Simplified wounding
-                    armor_save = random.randint(1, 6)
-                    if armor_save < 4:  # Simplified armor save
-                        target.wounds -= 1
-                        return f"{attacker.name} hit and wounded {target.name}! Remaining wounds: {target.wounds}"
-                    else:
-                        return f"{attacker.name} hit {target.name}, but the armor saved them!"
-                else:
-                    return f"{attacker.name} hit {target.name}, but failed to wound"
+        hit_modifier = self.apply_gang_traits(attacker, target)
+        
+        if weapon.range == "Melee":
+            return self.resolve_melee_attack(attacker, target, weapon, hit_modifier)
+        else:
+            return self.resolve_ranged_attack(attacker, target, weapon, hit_modifier)
+
+    def resolve_melee_attack(self, attacker, target, weapon, hit_modifier):
+        hit_roll = random.randint(1, 6) + hit_modifier
+        if hit_roll >= attacker.weapon_skill:
+            wound_roll = random.randint(1, 6)
+            to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
+            if wound_roll >= to_wound:
+                damage = self.resolve_damage(weapon, target)
+                return f"{attacker.name} hit and wounded {target.name} with {weapon.name}! Damage dealt: {damage}"
             else:
-                return f"{attacker.name} missed {target.name}"
-        else:  # Ranged attack
-            if hit_roll >= attacker.ballistic_skill:
-                wound_roll = random.randint(1, 6)
-                if wound_roll >= 4:  # Simplified wounding
-                    armor_save = random.randint(1, 6)
-                    if armor_save < 4:  # Simplified armor save
-                        target.wounds -= 1
-                        return f"{attacker.name} shot and wounded {target.name}! Remaining wounds: {target.wounds}"
-                    else:
-                        return f"{attacker.name} shot {target.name}, but the armor saved them!"
-                else:
-                    return f"{attacker.name} hit {target.name}, but failed to wound"
+                return f"{attacker.name} hit {target.name}, but failed to wound"
+        else:
+            return f"{attacker.name} missed {target.name}"
+
+    def resolve_ranged_attack(self, attacker, target, weapon, hit_modifier):
+        hit_roll = random.randint(1, 6) + hit_modifier
+        if hit_roll >= attacker.ballistic_skill:
+            wound_roll = random.randint(1, 6)
+            to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
+            if wound_roll >= to_wound:
+                damage = self.resolve_damage(weapon, target)
+                return f"{attacker.name} shot and wounded {target.name} with {weapon.name}! Damage dealt: {damage}"
             else:
-                return f"{attacker.name} missed {target.name}"
+                return f"{attacker.name} hit {target.name}, but failed to wound"
+        else:
+            return f"{attacker.name} missed {target.name}"
+
+    def calculate_to_wound(self, strength, toughness):
+        if strength >= toughness * 2:
+            return 2
+        elif strength > toughness:
+            return 3
+        elif strength == toughness:
+            return 4
+        elif strength < toughness:
+            return 5
+        else:
+            return 6
+
+    def resolve_damage(self, weapon, target):
+        damage = weapon.damage
+        armor_save = random.randint(1, 6)
+        if armor_save + weapon.armor_penetration >= 4:  # Simplified armor save
+            damage = 0
+        
+        if damage > 0:
+            target.wounds -= damage
+            if target.wounds <= 0:
+                target.wounds = 0
+                # Implement injury roll here
+        
+        return damage
+
+    def apply_gang_traits(self, attacker, target):
+        hit_modifier = 0
+        
+        # Goliath trait: Unstoppable
+        if attacker.gang == "Goliaths" and any(rule.name == "Unstoppable" for rule in attacker.special_rules):
+            hit_modifier += 1
+
+        # Escher trait: Agile
+        if target.gang == "Escher":
+            hit_modifier -= 1
+
+        return hit_modifier
+
+    def apply_special_rules(self, attacker, target, weapon):
+        # Implement special rules here
+        pass
 
     def get_battlefield_state(self) -> str:
         battlefield = self.game_state.battlefield

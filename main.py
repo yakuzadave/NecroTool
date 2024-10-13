@@ -20,6 +20,12 @@ def main():
         "move Crusher 1 1",
         "attack Crusher Venom",
         "end_turn",
+        "move Venom 1 1",
+        "attack Venom Crusher",
+        "end_turn",
+        "attack Smasher Shadow",
+        "end_turn",
+        "attack Shadow Smasher",
         "status",
         "quit"
     ]
