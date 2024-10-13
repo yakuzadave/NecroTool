@@ -17,7 +17,7 @@ class Equipment(BaseModel):
 class SpecialRule(BaseModel):
     name: str
     description: str
-    effect: str
+    effect: str  # Added this field
 
 class GangMember(BaseModel):
     name: str = Field(..., description="Name of the gang member")

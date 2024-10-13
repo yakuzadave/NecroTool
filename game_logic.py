@@ -26,7 +26,7 @@ class GameLogic:
                 ],
                 equipment=[],
                 skills=["Nerves of Steel"],
-                special_rules=[SpecialRule(name="Unstoppable", description="This fighter may ignore Flesh Wounds when making Injury rolls.")],
+                special_rules=[SpecialRule(name="Unstoppable", description="This fighter may ignore Flesh Wounds when making Injury rolls.", effect="Ignore Flesh Wounds on Injury rolls")],
                 xp=0
             ),
             GangMember(
@@ -55,7 +55,7 @@ class GameLogic:
                 ],
                 equipment=[],
                 skills=["Catfall"],
-                special_rules=[],
+                special_rules=[SpecialRule(name="Agile", description="This fighter is exceptionally agile.", effect="Improve Dodge rolls")],
                 xp=0
             ),
             GangMember(
@@ -189,7 +189,7 @@ class GameLogic:
             hit_modifier += 1
 
         # Escher trait: Agile
-        if target.gang == "Escher":
+        if target.gang == "Escher" and any(rule.name == "Agile" for rule in target.special_rules):
             hit_modifier -= 1
 
         return hit_modifier
