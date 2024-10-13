@@ -1,0 +1,106 @@
+Define Project Scope and Goals
+
+Establish the primary objectives of the simulation, such as text-based interaction, narrative elements, and rule enforcement.
+Decide on simulating core Necromunda mechanics with full fidelity to the official ruleset.
+Define the target audience: experienced Necromunda players seeking a fully faithful simulation.
+Design Game Rules Representation
+
+Turn Order and Activation: Represent the alternating activation system, ensuring fairness and strict adherence to Necromunda rules.
+Detailed Rules Implementation: Translate Necromunda rules exactly as stated, without abstraction. Include comprehensive mechanics for movement, cover, line-of-sight, injury, and all gang-specific traits.
+Map Representation
+
+Grid-Based System: Implement a grid-based text representation of the battlefield, defining each tile as a position with specific traits (e.g., open space, cover, elevation).
+Environment Elements: Define and represent map elements such as obstacles, cover, hazardous zones, elevation, and destructible terrain accurately according to the game rules.
+Map Updates: Write logic to update the map dynamically after player actions, including modifications for destroyed cover, elevation changes, and ongoing environmental effects.
+Terrain Effects: Implement precise terrain rules for movement (e.g., Difficult Terrain, hazardous terrain effects).
+Gang and Character Modeling
+
+Attribute Representation: Define all key attributes (Movement, Ballistic Skill, Weapon Skill, Strength, Toughness, Wounds, Initiative, etc.) in detail for each fighter.
+Weapons and Equipment: Implement a detailed inventory system for weapons, ammo, and gear. Include stats like range, strength, AP, ammo checks, and specific traits (e.g., Blaze, Knockback).
+Special Rules: Accurately implement gang and character-specific special rules (e.g., "Fearsome" for Goliaths, "Spring Up" for Escher).
+Gang Types: Represent each gang according to the official rules, including strengths, weaknesses, and exclusive skills.
+Turn Sequence and Action System
+
+Initiative and Priority: Develop a function to determine which gang activates first and manage alternating activations.
+Actions per Turn: Implement all possible actions for each fighter (Move, Shoot, Charge, Take Cover, Crawl, Stand Up, etc.).
+Action Point Management: Track actions precisely, ensuring rules such as "Ready" and "Engaged" are correctly enforced.
+Combat System
+
+Melee and Ranged Combat: Implement combat mechanics for melee and ranged, including modifiers for range, cover, skills, and special abilities.
+Hit Rolls: Accurately simulate hit rolls, using BS/WS and incorporating modifiers for visibility, cover, and range.
+Armor and Damage Resolution: Implement armor saves, AP values, injury rolls, and critical hits. Represent Flesh Wounds, Seriously Injured, and Out of Action results.
+Status Effects: Track all status effects (e.g., Pinned, Seriously Injured, Engaged) and their impact on fighter abilities.
+Text-Based User Interface
+
+Command System: Develop text commands to control gang members (e.g., move A1 to B2, attack, end turn), ensuring strict adherence to Necromunda's sequence of play.
+User Input Parsing: Write a parser to interpret user input and execute appropriate game logic with validation to ensure adherence to game rules.
+Visual Representation: Ensure actions, results, and map states are represented clearly with consistent formatting.
+Environmental Effects
+
+Dynamic Terrain Changes: Implement rules for destructible terrain (e.g., cover collapsing) and how it impacts movement or visibility.
+Weather Effects: Include environmental effects such as ash storms, toxic gases, and radiation zones as per Necromunda campaign settings.
+Event Triggers: Incorporate random events from the official rulebook, including environmental hazards triggered by specific rolls or actions.
+Victory Conditions and Scoring
+
+Objective Tracking: Implement mission-specific objectives (e.g., capturing loot, assassinations) exactly as defined in official scenarios.
+Victory Points Calculation: Create a detailed system to calculate victory points according to official rules and objectives.
+Alternate End Conditions: Ensure alternate game-ending conditions, such as "bottling out" or achieving a specific objective, are faithfully represented.
+Narrative Flavor and Random Events
+
+Flavor Text: Add descriptive text for each action and significant event to enhance immersion (e.g., narrative flavor for critical hits or terrain destruction).
+Random Events: Develop a table of random events based on the core and expansion rulebooks for Necromunda.
+Campaign Events: Add narrative-driven events if players use this simulation for campaign play, tracking character progression and changes between games.
+Define All Dice Rolls Needed for Simulation
+
+Weapon Attack Rolls: Define attack rolls, modifiers, and any special rules affecting hits.
+Wound and Armor Rolls: Implement wound rolls based on Strength vs. Toughness and armor saves with modifiers such as AP values.
+Injury Rolls: Create injury tables, including results like Out of Action, Captured, or Serious Injury.
+Vehicle Rolls: Include detailed vehicle rules, handling crashes, critical hits, and hazardous movement.
+Skill Tests: Implement rolls for skills (e.g., Willpower, Cool, Leadership) for morale, Breaking tests, and special scenarios.
+Blast and Scatter Rolls: Implement deviation and scatter for blast weapons and templates as per official rules.
+Campaign Rolls: Include rolls for injuries, equipment acquisition, and territory results.
+Testing and Debugging
+
+Unit Testing for Rules: Write unit tests for all core game mechanics, ensuring that every element adheres to official Necromunda rules.
+Simulation Runs: Playtest full rounds to identify any deviations from official mechanics.
+Balancing Checks: Verify the correct implementation of game mechanics, ensuring that modifiers and special rules interact as intended.
+Quality of Life Improvements
+
+Command Shortcuts: Implement shortcuts for common actions while maintaining fidelity to rules.
+Undo Functionality: Add an undo function for incorrect commands while ensuring no violation of rules (e.g., allowing undo only before any dice roll).
+Save and Load Game State: Create save/load functionality, allowing users to pick up games where they left off.
+Documentation
+
+User Guide: Develop a detailed guide for using the simulation, explaining each command and how it reflects the Necromunda rules.
+Rules Documentation: Fully document all rules implemented, explaining any clarifications needed for the text interface.
+Developer Notes: Maintain internal documentation for developers to understand how rules are applied within the code.
+Playtest Simulation
+
+Internal Playtesting: Conduct internal playtests to ensure accurate rule implementation and identify bugs.
+Community Playtesting: Gather experienced Necromunda players to provide feedback on rule fidelity and game feel.
+Iterative Improvements: Apply feedback iteratively to maintain a high level of accuracy and engagement.
+Expandability and Additional Features
+
+Gang Progression System: Implement fighter advancements, permanent injuries, and skill progression according to campaign rules.
+Campaign Mechanics: Develop a campaign framework with territories, resource management, and ongoing gang progression.
+AI Opponent: Implement an AI to control opposing gangs for solo play, adhering to Necromunda's decision-making processes.
+Multiplayer Capability: Develop multiplayer functionality for multiple users to play against each other.
+Post-Battle Sequence
+
+Injury Resolution: Implement post-game injury rolls for fighters that went Out of Action (e.g., Captured, Dead, Full Recovery).
+Experience and Advancement: Track XP for fighters and implement skill advancement tables.
+Reputation Changes: Implement reputation gains or losses based on battle outcomes, objectives completed, and other events.
+Resource and Campaign Management
+
+Credits and Income: Accurately track credits earned and include income from territories.
+Trading and Equipment: Implement the trading post, allowing gangs to buy, sell, or upgrade their weapons and equipment.
+Territory Control: Include rules for acquiring, managing, and losing territories in the campaign.
+Narrative Scenarios and Customization
+
+Scenario Builder: Allow for the creation of custom scenarios using official rules, with adjustable objectives, terrain types, and environmental conditions.
+Special Events: Include official narrative-driven events or add-ons that can impact the campaign.
+Final Polishing and Enhancements
+
+Text Formatting: Ensure all game interactions are presented clearly, with consistent formatting that is easy to follow.
+Accessibility Features: Add options for larger text or text-to-speech, making the simulation accessible to all users.
+ASCII Art Enhancements: Enhance the game with ASCII art for key moments (e.g., explosions, victory banners) to provide additional visual appeal
