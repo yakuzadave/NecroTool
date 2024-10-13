@@ -12,13 +12,29 @@ def main():
     console.print("[bold green]Welcome to the Necromunda Simulation![/bold green]")
     console.print("Enter 'help' for a list of commands.")
 
-    while True:
-        command = console.input("[bold cyan]Enter command:[/bold cyan] ")
-        if command.lower() == 'quit':
-            break
-        ui.process_command(command)
+    # Test commands
+    test_commands = [
+        "help",
+        "status",
+        "map",
+        "move Crusher 1 1",
+        "attack Crusher Venom",
+        "end_turn",
+        "status",
+        "quit"
+    ]
 
-    console.print("[bold red]Exiting Necromunda Simulation. Goodbye![/bold red]")
+    try:
+        for command in test_commands:
+            console.print(f"\n[bold cyan]Executing command:[/bold cyan] {command}")
+            if command.lower() == 'quit':
+                break
+            ui.process_command(command)
+            console.print("[bold green]Command executed successfully.[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]An unexpected error occurred in main loop:[/bold red] {str(e)}")
+    finally:
+        console.print("[bold red]Exiting Necromunda Simulation. Goodbye![/bold red]")
 
 if __name__ == "__main__":
     main()
