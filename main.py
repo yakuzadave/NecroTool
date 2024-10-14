@@ -20,15 +20,16 @@ def main():
         "map",
         "move Crusher 1 1",
         "attack Crusher Venom",
-        "end_turn",
+        "end_activation",
         "move Venom 1 1",
         "attack Venom Crusher",
-        "end_turn",
-        "attack Smasher Shadow",
-        "end_turn",
-        "attack Shadow Smasher",
+        "end_activation",
+        "move Smasher 1 0",
+        "end_activation",
+        "move Shadow 0 1",
+        "end_activation",
         "status",
-        "test_d20",  # New test command to demonstrate d20 usage
+        "test_d20",
         "quit"
     ]
 

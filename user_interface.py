@@ -28,9 +28,9 @@ class UserInterface:
                     raise ValueError("Invalid attack command. Use: attack <attacker_name> <target_name>")
                 result = self.game_logic.attack(parts[1], parts[2])
                 self.console.print(result)
-            elif parts[0] == 'end_turn':
-                self.game_logic.next_turn()
-                self.console.print(f"Turn ended. Active gang: {self.game_logic.get_active_gang().name}")
+            elif parts[0] == 'end_activation':
+                result = self.game_logic.end_fighter_activation()
+                self.console.print(result)
             elif parts[0] == 'save':
                 self.game_logic.save_game_state()
                 self.console.print("Game state saved.")
@@ -47,9 +47,9 @@ class UserInterface:
         self.console.print("[bold]Available commands:[/bold]")
         self.console.print("  help - Show this help message")
         self.console.print("  status - Show detailed status of all gang members")
-        self.console.print("  move <fighter_name> <x> <y> - Move a fighter")
-        self.console.print("  attack <attacker_name> <target_name> - Attack a target")
-        self.console.print("  end_turn - End the current turn")
+        self.console.print("  move <fighter_name> <x> <y> - Move the active fighter")
+        self.console.print("  attack <attacker_name> <target_name> - Attack with the active fighter")
+        self.console.print("  end_activation - End the current fighter's activation")
         self.console.print("  save - Save the current game state")
         self.console.print("  map - Show the battlefield map")
         self.console.print("  quit - Exit the game")
@@ -73,15 +73,18 @@ class UserInterface:
             table.add_column("Wil", justify="right")
             table.add_column("Int", justify="right")
             table.add_column("XP", justify="right")
+            table.add_column("Active", justify="right")
 
             for member in gang.members:
+                is_active = (gang == self.game_logic.get_active_gang() and
+                             member == self.game_logic.get_active_fighter())
                 table.add_row(
                     member.name, member.role,
                     str(member.movement), str(member.weapon_skill), str(member.ballistic_skill),
                     str(member.strength), str(member.toughness), str(member.wounds),
                     str(member.initiative), str(member.attacks), str(member.leadership),
                     str(member.cool), str(member.willpower), str(member.intelligence),
-                    str(member.xp)
+                    str(member.xp), "Yes" if is_active else "No"
                 )
 
             self.console.print(table)
@@ -108,6 +111,7 @@ class UserInterface:
 
         self.console.print(f"\nCurrent Turn: {self.game_logic.game_state.current_turn}")
         self.console.print(f"Active Gang: {self.game_logic.get_active_gang().name}")
+        self.console.print(f"Active Fighter: {self.game_logic.get_active_fighter().name}")
 
     def show_battlefield(self):
         battlefield_state = self.game_logic.get_battlefield_state()

@@ -6,6 +6,7 @@ class GameLogic:
     def __init__(self, db: Database):
         self.db = db
         self.game_state = self._initialize_game_state()
+        self.active_fighter_index = 0
 
     def _initialize_game_state(self) -> GameState:
         saved_state = self.db.load_game_state()
@@ -94,40 +95,45 @@ class GameLogic:
     def get_active_gang(self) -> Gang:
         return self.game_state.gangs[self.game_state.active_gang_index]
 
+    def get_active_fighter(self) -> GangMember:
+        active_gang = self.get_active_gang()
+        return active_gang.members[self.active_fighter_index]
+
     def next_turn(self):
-        self.game_state.active_gang_index = (self.game_state.active_gang_index + 1) % len(self.game_state.gangs)
-        if self.game_state.active_gang_index == 0:
-            self.game_state.current_turn += 1
+        self.active_fighter_index += 1
+        if self.active_fighter_index >= len(self.get_active_gang().members):
+            self.active_fighter_index = 0
+            self.game_state.active_gang_index = (self.game_state.active_gang_index + 1) % len(self.game_state.gangs)
+            if self.game_state.active_gang_index == 0:
+                self.game_state.current_turn += 1
 
     def move_fighter(self, fighter_name: str, x: int, y: int) -> bool:
-        active_gang = self.get_active_gang()
-        fighter = next((f for f in active_gang.members if f.name.lower() == fighter_name.lower()), None)
-        if not fighter:
+        active_fighter = self.get_active_fighter()
+        if active_fighter.name.lower() != fighter_name.lower():
             return False
 
-        if abs(x) + abs(y) <= fighter.movement:
+        if abs(x) + abs(y) <= active_fighter.movement:
             return True
         return False
 
     def attack(self, attacker_name: str, target_name: str) -> str:
-        active_gang = self.get_active_gang()
-        attacker = next((f for f in active_gang.members if f.name.lower() == attacker_name.lower()), None)
-        if not attacker:
-            return "Attacker not found"
+        active_fighter = self.get_active_fighter()
+        if active_fighter.name.lower() != attacker_name.lower():
+            return "It's not this fighter's turn to act"
 
-        target_gang = next((g for g in self.game_state.gangs if g != active_gang), None)
+        target_gang = next((g for g in self.game_state.gangs if g != self.get_active_gang()), None)
         target = next((f for f in target_gang.members if f.name.lower() == target_name.lower()), None)
         if not target:
             return "Target not found"
 
-        weapon = attacker.weapons[0]  # Use the first weapon for simplicity
+        weapon = active_fighter.weapons[0]  # Use the first weapon for simplicity
         
-        hit_modifier = self.apply_gang_traits(attacker, target)
+        hit_modifier = self.apply_gang_traits(active_fighter, target)
         
         if weapon.range == "Melee":
-            return self.resolve_melee_attack(attacker, target, weapon, hit_modifier)
+            return self.resolve_melee_attack(active_fighter, target, weapon, hit_modifier)
         else:
-            return self.resolve_ranged_attack(attacker, target, weapon, hit_modifier)
+            return self.resolve_ranged_attack(active_fighter, target, weapon, hit_modifier)
 
     def resolve_melee_attack(self, attacker, target, weapon, hit_modifier):
         hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
@@ -212,3 +218,7 @@ class GameLogic:
                     state += str(tile.elevation)
             state += "\n"
         return state
+
+    def end_fighter_activation(self):
+        self.next_turn()
+        return f"Activation ended. Active fighter: {self.get_active_fighter().name} ({self.get_active_gang().name})"
