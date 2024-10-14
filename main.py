@@ -32,6 +32,8 @@ def main():
         "status",
         "objectives",
         "victory_points",
+        'create_gang_member Goliaths {"name": "TestFighter", "role": "Juve", "movement": 5, "weapon_skill": 4, "ballistic_skill": 4, "strength": 3, "toughness": 3, "wounds": 1, "initiative": 3, "attacks": 1, "leadership": 6, "cool": 6, "willpower": 6, "intelligence": 6, "credits_value": 60, "weapons": [{"name": "Stub Gun", "range": "8\\"", "strength": 3, "armor_penetration": 0, "damage": 1, "ammo": "4+", "traits": ["Pistol"]}]}',
+        "status",
         "test_d20",
         "quit"
     ]

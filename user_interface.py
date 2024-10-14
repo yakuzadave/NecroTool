@@ -1,6 +1,7 @@
 from rich.console import Console
 from rich.table import Table
 from game_logic import GameLogic
+import json
 
 class UserInterface:
     def __init__(self, console: Console, game_logic: GameLogic):
@@ -40,6 +41,17 @@ class UserInterface:
                 self.show_mission_objectives()
             elif parts[0] == 'victory_points':
                 self.show_victory_points()
+            elif parts[0] == 'create_gang_member':
+                if len(parts) < 3:
+                    raise ValueError("Invalid create_gang_member command. Use: create_gang_member <gang_name> <member_data_json>")
+                gang_name = parts[1]
+                member_data_json = " ".join(parts[2:])
+                try:
+                    member_data = json.loads(member_data_json)
+                    result = self.game_logic.create_custom_gang_member(gang_name, member_data)
+                    self.console.print(result)
+                except json.JSONDecodeError:
+                    raise ValueError("Invalid JSON format for member data")
             else:
                 raise ValueError(f"Unknown command: {parts[0]}")
         except ValueError as e:
@@ -58,6 +70,7 @@ class UserInterface:
         self.console.print("  map - Show the battlefield map")
         self.console.print("  objectives - Show current mission objectives")
         self.console.print("  victory_points - Show current victory points")
+        self.console.print("  create_gang_member <gang_name> <member_data_json> - Create a custom gang member")
         self.console.print("  quit - Exit the game")
 
     def show_status(self):

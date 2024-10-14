@@ -1,5 +1,5 @@
 import d20
-from models import GameState, Gang, GangMember, Weapon, Equipment, SpecialRule, Battlefield, Tile, MissionObjective
+from models import GameState, Gang, GangMember, Weapon, SpecialRule, Battlefield, Tile, MissionObjective
 from database import Database
 from typing import List, Dict
 
@@ -281,3 +281,40 @@ class GameLogic:
             return f"It's a tie between {' and '.join(winners)}!"
         else:
             return f"{winners[0]} wins the game!"
+
+    def create_custom_gang_member(self, gang_name: str, member_data: Dict) -> str:
+        gang = next((g for g in self.game_state.gangs if g.name.lower() == gang_name.lower()), None)
+        if not gang:
+            return f"Gang '{gang_name}' not found."
+
+        try:
+            new_member = GangMember(
+                name=member_data['name'],
+                gang=gang.name,
+                role=member_data['role'],
+                movement=member_data['movement'],
+                weapon_skill=member_data['weapon_skill'],
+                ballistic_skill=member_data['ballistic_skill'],
+                strength=member_data['strength'],
+                toughness=member_data['toughness'],
+                wounds=member_data['wounds'],
+                initiative=member_data['initiative'],
+                attacks=member_data['attacks'],
+                leadership=member_data['leadership'],
+                cool=member_data['cool'],
+                willpower=member_data['willpower'],
+                intelligence=member_data['intelligence'],
+                credits_value=member_data['credits_value'],
+                outlaw=member_data.get('outlaw', False),
+                weapons=[Weapon(**w) for w in member_data['weapons']],
+                equipment=[],  # Add equipment handling if needed
+                skills=member_data.get('skills', []),
+                special_rules=[SpecialRule(**sr) for sr in member_data.get('special_rules', [])],
+                xp=0
+            )
+            gang.members.append(new_member)
+            return f"Successfully created {new_member.name} for {gang.name} gang."
+        except KeyError as e:
+            return f"Error: Missing required field {str(e)}"
+        except ValueError as e:
+            return f"Error: Invalid data - {str(e)}"
