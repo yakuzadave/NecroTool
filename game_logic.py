@@ -145,29 +145,55 @@ class GameLogic:
 
     def resolve_melee_attack(self, attacker, target, weapon, hit_modifier):
         hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
-        if hit_roll >= attacker.weapon_skill:
+        hit_threshold = 7 - attacker.weapon_skill
+        hit_result = "hit" if hit_roll >= hit_threshold else "miss"
+        
+        attack_log = f"{attacker.name} attacks {target.name} with {weapon.name}. "
+        attack_log += f"Hit roll: {hit_roll} vs {hit_threshold}+ to hit. {hit_result.capitalize()}! "
+        
+        if hit_result == "hit":
             wound_roll = d20.roll("1d6").total
             to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
-            if wound_roll >= to_wound:
+            wound_result = "wounds" if wound_roll >= to_wound else "fails to wound"
+            
+            attack_log += f"Wound roll: {wound_roll} vs {to_wound}+ to wound. {wound_result.capitalize()}! "
+            
+            if wound_result == "wounds":
                 damage = self.resolve_damage(weapon, target)
-                return f"{attacker.name} hit and wounded {target.name} with {weapon.name}! Damage dealt: {damage}"
-            else:
-                return f"{attacker.name} hit {target.name}, but failed to wound"
-        else:
-            return f"{attacker.name} missed {target.name}"
+                attack_log += f"Damage dealt: {damage}. "
+                
+                if target.wounds <= 0:
+                    attack_log += f"{target.name} is taken out of action!"
+        
+        return attack_log
 
     def resolve_ranged_attack(self, attacker, target, weapon, hit_modifier):
         hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
-        if hit_roll >= attacker.ballistic_skill:
+        hit_threshold = 7 - attacker.ballistic_skill
+        hit_result = "hit" if hit_roll >= hit_threshold else "miss"
+        
+        attack_log = f"{attacker.name} shoots at {target.name} with {weapon.name}. "
+        attack_log += f"Hit roll: {hit_roll} vs {hit_threshold}+ to hit. {hit_result.capitalize()}! "
+        
+        if hit_result == "hit":
             wound_roll = d20.roll("1d6").total
             to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
-            if wound_roll >= to_wound:
-                damage = self.resolve_damage(weapon, target)
-                return f"{attacker.name} shot and wounded {target.name} with {weapon.name}! Damage dealt: {damage}"
-            else:
-                return f"{attacker.name} hit {target.name}, but failed to wound"
-        else:
-            return f"{attacker.name} missed {target.name}"
+            wound_result = "wounds" if wound_roll >= to_wound else "fails to wound"
+            
+            attack_log += f"Wound roll: {wound_roll} vs {to_wound}+ to wound. {wound_result.capitalize()}! "
+            
+            if wound_result == "wounds":
+                armor_save = self.resolve_armor_save(target, weapon)
+                if armor_save:
+                    attack_log += f"{target.name} makes their armor save! "
+                else:
+                    damage = self.resolve_damage(weapon, target)
+                    attack_log += f"Damage dealt: {damage}. "
+                    
+                    if target.wounds <= 0:
+                        attack_log += f"{target.name} is taken out of action!"
+        
+        return attack_log
 
     def calculate_to_wound(self, strength, toughness):
         if strength >= toughness * 2:
@@ -176,40 +202,35 @@ class GameLogic:
             return 3
         elif strength == toughness:
             return 4
-        elif strength < toughness:
-            return 5
-        else:
+        elif strength <= toughness / 2:
             return 6
+        else:
+            return 5
+
+    def resolve_armor_save(self, target, weapon):
+        armor_save_threshold = 6 + weapon.armor_penetration
+        armor_save_roll = d20.roll("1d6").total
+        return armor_save_roll >= armor_save_threshold
 
     def resolve_damage(self, weapon, target):
         damage = weapon.damage
-        armor_save = d20.roll("1d6").total
-        if armor_save + weapon.armor_penetration >= 4:  # Simplified armor save
-            damage = 0
-        
-        if damage > 0:
-            target.wounds -= damage
-            if target.wounds <= 0:
-                target.wounds = 0
-                # Implement injury roll here
-        
+        target.wounds -= damage
+        if target.wounds < 0:
+            target.wounds = 0
         return damage
 
     def apply_gang_traits(self, attacker, target):
         hit_modifier = 0
         
-        # Goliath trait: Unstoppable
         if attacker.gang == "Goliaths" and any(rule.name == "Unstoppable" for rule in attacker.special_rules):
             hit_modifier += 1
 
-        # Escher trait: Agile
         if target.gang == "Escher" and any(rule.name == "Agile" for rule in target.special_rules):
             hit_modifier -= 1
 
         return hit_modifier
 
     def apply_special_rules(self, attacker, target, weapon):
-        # Implement special rules here
         pass
 
     def get_battlefield_state(self) -> str:
@@ -241,7 +262,6 @@ class GameLogic:
                 self.check_scavenge_resources_objective()
 
     def check_claim_territory_objective(self):
-        # Implement logic to check territory control
         pass
 
     def check_assassinate_leader_objective(self):
@@ -253,7 +273,6 @@ class GameLogic:
                 objective.completed = True
 
     def check_scavenge_resources_objective(self):
-        # Implement logic to check resource collection
         pass
 
     def calculate_victory_points(self) -> List[Dict[str, int]]:
@@ -307,7 +326,7 @@ class GameLogic:
                 credits_value=member_data['credits_value'],
                 outlaw=member_data.get('outlaw', False),
                 weapons=[Weapon(**w) for w in member_data['weapons']],
-                equipment=[],  # Add equipment handling if needed
+                equipment=[],
                 skills=member_data.get('skills', []),
                 special_rules=[SpecialRule(**sr) for sr in member_data.get('special_rules', [])],
                 xp=0

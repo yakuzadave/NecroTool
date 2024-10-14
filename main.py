@@ -19,22 +19,17 @@ def main():
         "status",
         "map",
         "objectives",
-        "move Crusher 1 1",
         "attack Crusher Venom",
         "end_activation",
-        "move Venom 1 1",
         "attack Venom Crusher",
         "end_activation",
-        "move Smasher 1 0",
+        "attack Smasher Shadow",
         "end_activation",
-        "move Shadow 0 1",
+        "attack Shadow Smasher",
         "end_activation",
         "status",
         "objectives",
         "victory_points",
-        'create_gang_member Goliaths {"name": "TestFighter", "role": "Juve", "movement": 5, "weapon_skill": 4, "ballistic_skill": 4, "strength": 3, "toughness": 3, "wounds": 1, "initiative": 3, "attacks": 1, "leadership": 6, "cool": 6, "willpower": 6, "intelligence": 6, "credits_value": 60, "weapons": [{"name": "Stub Gun", "range": "8\\"", "strength": 3, "armor_penetration": 0, "damage": 1, "ammo": "4+", "traits": ["Pistol"]}]}',
-        "status",
-        "test_d20",
         "quit"
     ]
 
@@ -43,10 +38,6 @@ def main():
             console.print(f"\n[bold cyan]Executing command:[/bold cyan] {command}")
             if command.lower() == 'quit':
                 break
-            elif command.lower() == 'test_d20':
-                # Demonstrate d20 usage
-                roll_result = d20.roll("2d6 + 3")
-                console.print(f"Test d20 roll (2d6 + 3): {roll_result}")
             else:
                 ui.process_command(command)
             console.print("[bold green]Command executed successfully.[/bold green]")
