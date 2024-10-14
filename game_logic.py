@@ -163,7 +163,8 @@ class GameLogic:
                 attack_log += f"Damage dealt: {damage}. "
                 
                 if target.wounds <= 0:
-                    attack_log += f"{target.name} is taken out of action!"
+                    injury_result = self.resolve_injury(target)
+                    attack_log += f"{target.name} suffers {injury_result}!"
         
         return attack_log
 
@@ -191,7 +192,8 @@ class GameLogic:
                     attack_log += f"Damage dealt: {damage}. "
                     
                     if target.wounds <= 0:
-                        attack_log += f"{target.name} is taken out of action!"
+                        injury_result = self.resolve_injury(target)
+                        attack_log += f"{target.name} suffers {injury_result}!"
         
         return attack_log
 
@@ -215,9 +217,22 @@ class GameLogic:
     def resolve_damage(self, weapon, target):
         damage = weapon.damage
         target.wounds -= damage
-        if target.wounds < 0:
+        if target.wounds <= 0:
             target.wounds = 0
+            self.resolve_injury(target)
         return damage
+
+    def resolve_injury(self, target):
+        injury_roll = d20.roll("1d6").total
+        if injury_roll == 1:
+            target.injuries.append("Flesh Wound")
+            return "Flesh Wound"
+        elif injury_roll in [2, 3, 4]:
+            target.injuries.append("Seriously Injured")
+            return "Seriously Injured"
+        else:
+            target.injuries.append("Out of Action")
+            return "Out of Action"
 
     def apply_gang_traits(self, attacker, target):
         hit_modifier = 0
