@@ -144,11 +144,12 @@ class GameLogic:
             return self.resolve_ranged_attack(active_fighter, target, weapon, hit_modifier)
 
     def resolve_melee_attack(self, attacker, target, weapon, hit_modifier):
+        attack_log = f"{attacker.name} attacks {target.name} with {weapon.name}. "
+        
         hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
         hit_threshold = 7 - attacker.weapon_skill
         hit_result = "hit" if hit_roll >= hit_threshold else "miss"
         
-        attack_log = f"{attacker.name} attacks {target.name} with {weapon.name}. "
         attack_log += f"Hit roll: {hit_roll} vs {hit_threshold}+ to hit. {hit_result.capitalize()}! "
         
         if hit_result == "hit":
@@ -159,21 +160,18 @@ class GameLogic:
             attack_log += f"Wound roll: {wound_roll} vs {to_wound}+ to wound. {wound_result.capitalize()}! "
             
             if wound_result == "wounds":
-                damage = self.resolve_damage(weapon, target)
-                attack_log += f"Damage dealt: {damage}. "
-                
-                if target.wounds <= 0:
-                    injury_result = self.resolve_injury(target)
-                    attack_log += f"{target.name} suffers {injury_result}!"
+                damage_result = self.resolve_damage(weapon, target)
+                attack_log += damage_result + " "
         
         return attack_log
 
     def resolve_ranged_attack(self, attacker, target, weapon, hit_modifier):
+        attack_log = f"{attacker.name} shoots at {target.name} with {weapon.name}. "
+        
         hit_roll = d20.roll(f"1d6 + {hit_modifier}").total
         hit_threshold = 7 - attacker.ballistic_skill
         hit_result = "hit" if hit_roll >= hit_threshold else "miss"
         
-        attack_log = f"{attacker.name} shoots at {target.name} with {weapon.name}. "
         attack_log += f"Hit roll: {hit_roll} vs {hit_threshold}+ to hit. {hit_result.capitalize()}! "
         
         if hit_result == "hit":
@@ -188,12 +186,8 @@ class GameLogic:
                 if armor_save:
                     attack_log += f"{target.name} makes their armor save! "
                 else:
-                    damage = self.resolve_damage(weapon, target)
-                    attack_log += f"Damage dealt: {damage}. "
-                    
-                    if target.wounds <= 0:
-                        injury_result = self.resolve_injury(target)
-                        attack_log += f"{target.name} suffers {injury_result}!"
+                    damage_result = self.resolve_damage(weapon, target)
+                    attack_log += damage_result + " "
         
         return attack_log
 
@@ -217,22 +211,27 @@ class GameLogic:
     def resolve_damage(self, weapon, target):
         damage = weapon.damage
         target.wounds -= damage
+        injury_result = ""
         if target.wounds <= 0:
             target.wounds = 0
-            self.resolve_injury(target)
-        return damage
+            injury_result = self.resolve_injury(target)
+        return f"Damage dealt: {damage}. {injury_result}"
 
     def resolve_injury(self, target):
         injury_roll = d20.roll("1d6").total
+        injury_result = ""
         if injury_roll == 1:
-            target.injuries.append("Flesh Wound")
-            return "Flesh Wound"
+            injury_result = "Flesh Wound"
+            target.wounds = max(1, target.wounds)  # Ensure the fighter has at least 1 wound
         elif injury_roll in [2, 3, 4]:
-            target.injuries.append("Seriously Injured")
-            return "Seriously Injured"
+            injury_result = "Seriously Injured"
+            target.wounds = 0
         else:
-            target.injuries.append("Out of Action")
-            return "Out of Action"
+            injury_result = "Out of Action"
+            target.wounds = 0
+        
+        target.injuries.append(injury_result)
+        return f"{target.name} suffers {injury_result} (Injury roll: {injury_roll})"
 
     def apply_gang_traits(self, attacker, target):
         hit_modifier = 0
