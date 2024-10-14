@@ -1,6 +1,7 @@
 import d20
-from models import GameState, Gang, GangMember, Weapon, Equipment, SpecialRule, Battlefield, Tile
+from models import GameState, Gang, GangMember, Weapon, Equipment, SpecialRule, Battlefield, Tile, MissionObjective
 from database import Database
+from typing import List, Dict
 
 class GameLogic:
     def __init__(self, db: Database):
@@ -87,7 +88,13 @@ class GameLogic:
             battlefield.tiles[y * 10 + x].type = "elevation"
             battlefield.tiles[y * 10 + x].elevation = d20.roll("1d2").total
 
-        return GameState(gangs=[gang1, gang2], battlefield=battlefield)
+        mission_objectives = [
+            MissionObjective(name="Claim Territory", description="Control the most terrain at the end of the game", points=3),
+            MissionObjective(name="Assassinate Leader", description="Take out the enemy gang's leader", points=5),
+            MissionObjective(name="Scavenge Resources", description="Collect the most resource tokens", points=2)
+        ]
+
+        return GameState(gangs=[gang1, gang2], battlefield=battlefield, mission_objectives=mission_objectives)
 
     def save_game_state(self):
         self.db.save_game_state(self.game_state.dict())
@@ -106,6 +113,7 @@ class GameLogic:
             self.game_state.active_gang_index = (self.game_state.active_gang_index + 1) % len(self.game_state.gangs)
             if self.game_state.active_gang_index == 0:
                 self.game_state.current_turn += 1
+                self.check_mission_objectives()
 
     def move_fighter(self, fighter_name: str, x: int, y: int) -> bool:
         active_fighter = self.get_active_fighter()
@@ -222,3 +230,54 @@ class GameLogic:
     def end_fighter_activation(self):
         self.next_turn()
         return f"Activation ended. Active fighter: {self.get_active_fighter().name} ({self.get_active_gang().name})"
+
+    def check_mission_objectives(self):
+        for objective in self.game_state.mission_objectives:
+            if objective.name == "Claim Territory":
+                self.check_claim_territory_objective()
+            elif objective.name == "Assassinate Leader":
+                self.check_assassinate_leader_objective()
+            elif objective.name == "Scavenge Resources":
+                self.check_scavenge_resources_objective()
+
+    def check_claim_territory_objective(self):
+        # Implement logic to check territory control
+        pass
+
+    def check_assassinate_leader_objective(self):
+        for gang in self.game_state.gangs:
+            if not any(member.role == "Leader" for member in gang.members):
+                opposing_gang = next(g for g in self.game_state.gangs if g != gang)
+                opposing_gang.victory_points += 5
+                objective = next(obj for obj in self.game_state.mission_objectives if obj.name == "Assassinate Leader")
+                objective.completed = True
+
+    def check_scavenge_resources_objective(self):
+        # Implement logic to check resource collection
+        pass
+
+    def calculate_victory_points(self) -> List[Dict[str, int]]:
+        results = []
+        for gang in self.game_state.gangs:
+            gang_vp = gang.victory_points
+            for objective in self.game_state.mission_objectives:
+                if objective.completed:
+                    gang_vp += objective.points
+            results.append({"gang": gang.name, "victory_points": gang_vp})
+        return results
+
+    def is_game_over(self) -> bool:
+        return self.game_state.current_turn > self.game_state.max_turns or all(obj.completed for obj in self.game_state.mission_objectives)
+
+    def get_winner(self) -> str:
+        if not self.is_game_over():
+            return "Game is not over yet"
+        
+        results = self.calculate_victory_points()
+        max_vp = max(result["victory_points"] for result in results)
+        winners = [result["gang"] for result in results if result["victory_points"] == max_vp]
+        
+        if len(winners) > 1:
+            return f"It's a tie between {' and '.join(winners)}!"
+        else:
+            return f"{winners[0]} wins the game!"

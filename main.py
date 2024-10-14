@@ -18,6 +18,7 @@ def main():
         "help",
         "status",
         "map",
+        "objectives",
         "move Crusher 1 1",
         "attack Crusher Venom",
         "end_activation",
@@ -29,6 +30,8 @@ def main():
         "move Shadow 0 1",
         "end_activation",
         "status",
+        "objectives",
+        "victory_points",
         "test_d20",
         "quit"
     ]

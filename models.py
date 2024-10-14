@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 class Weapon(BaseModel):
     name: str
@@ -17,7 +17,7 @@ class Equipment(BaseModel):
 class SpecialRule(BaseModel):
     name: str
     description: str
-    effect: str  # Added this field
+    effect: str
 
 class GangMember(BaseModel):
     name: str = Field(..., description="Name of the gang member")
@@ -49,6 +49,7 @@ class Gang(BaseModel):
     members: List[GangMember]
     credits: int = 1000
     special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the entire gang")
+    victory_points: int = Field(0, description="Victory points earned by the gang")
 
 class Tile(BaseModel):
     x: int
@@ -61,8 +62,16 @@ class Battlefield(BaseModel):
     height: int
     tiles: List[Tile]
 
+class MissionObjective(BaseModel):
+    name: str
+    description: str
+    points: int
+    completed: bool = False
+
 class GameState(BaseModel):
     gangs: List[Gang]
     battlefield: Battlefield
     current_turn: int = 1
     active_gang_index: int = 0
+    mission_objectives: List[MissionObjective] = Field(default_factory=list, description="List of mission objectives for the current game")
+    max_turns: int = Field(10, description="Maximum number of turns for the game")

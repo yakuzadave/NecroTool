@@ -36,6 +36,10 @@ class UserInterface:
                 self.console.print("Game state saved.")
             elif parts[0] == 'map':
                 self.show_battlefield()
+            elif parts[0] == 'objectives':
+                self.show_mission_objectives()
+            elif parts[0] == 'victory_points':
+                self.show_victory_points()
             else:
                 raise ValueError(f"Unknown command: {parts[0]}")
         except ValueError as e:
@@ -52,11 +56,13 @@ class UserInterface:
         self.console.print("  end_activation - End the current fighter's activation")
         self.console.print("  save - Save the current game state")
         self.console.print("  map - Show the battlefield map")
+        self.console.print("  objectives - Show current mission objectives")
+        self.console.print("  victory_points - Show current victory points")
         self.console.print("  quit - Exit the game")
 
     def show_status(self):
         for gang in self.game_logic.game_state.gangs:
-            self.console.print(f"\n[bold]{gang.name} Gang[/bold] (Credits: {gang.credits})")
+            self.console.print(f"\n[bold]{gang.name} Gang[/bold] (Credits: {gang.credits}, Victory Points: {gang.victory_points})")
             table = Table(show_header=True, header_style="bold magenta")
             table.add_column("Name", style="cyan")
             table.add_column("Role", style="green")
@@ -118,3 +124,19 @@ class UserInterface:
         self.console.print("[bold]Battlefield Map:[/bold]")
         self.console.print(battlefield_state)
         self.console.print("Legend: . = Open, # = Cover, 1-2 = Elevation")
+
+    def show_mission_objectives(self):
+        self.console.print("[bold]Mission Objectives:[/bold]")
+        for objective in self.game_logic.game_state.mission_objectives:
+            status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
+            self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
+
+    def show_victory_points(self):
+        self.console.print("[bold]Current Victory Points:[/bold]")
+        results = self.game_logic.calculate_victory_points()
+        for result in results:
+            self.console.print(f"{result['gang']}: {result['victory_points']} points")
+
+        if self.game_logic.is_game_over():
+            winner = self.game_logic.get_winner()
+            self.console.print(f"\n[bold green]{winner}[/bold green]")
