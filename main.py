@@ -5,6 +5,7 @@ from game_logic import GameLogic
 from database import initialize_database
 import d20
 from typing import List
+import json
 
 MAX_TEST_COMMANDS = 50
 
@@ -51,6 +52,9 @@ def get_test_commands() -> List[str]:
         "status",
         "objectives",
         "victory_points",
+        # Updated command to test gang member creation with correct role case
+        '''create_gang_member Goliaths {"name": "TestFighter", "gang": "Goliaths", "role": "Ganger", "movement": 4, "weapon_skill": 4, "ballistic_skill": 4, "strength": 4, "toughness": 4, "wounds": 1, "initiative": 4, "attacks": 1, "leadership": 7, "cool": 7, "willpower": 7, "intelligence": 6, "credits_value": 60, "weapons": [{"name": "Combat Knife", "range": "Melee", "strength": 3, "armor_penetration": 0, "damage": 1, "ammo": "N/A", "traits": ["Melee"]}]}''',
+        "status",
         "quit"
     ]
 
