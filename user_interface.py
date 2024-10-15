@@ -34,7 +34,9 @@ class UserInterface:
                 'show_scenario': self.show_scenario,
                 'check_objectives': self.check_scenario_objectives,
                 'show_combat_round': self._handle_show_combat_round,
-                'advance_phase': self._handle_advance_phase
+                'advance_phase': self._handle_advance_phase,
+                'show_fighter': self._handle_show_fighter,
+                'use_skill': self._handle_use_skill
             }
 
             handler = command_handlers.get(parts[0])
@@ -69,6 +71,8 @@ class UserInterface:
             ("check_objectives", "Check and update scenario objectives"),
             ("show_combat_round", "Display information about the current combat round"),
             ("advance_phase", "Advance to the next combat phase"),
+            ("show_fighter <fighter_name>", "Display detailed information about a specific fighter"),
+            ("use_skill <fighter_name> <skill_name>", "Use a skill or special ability of a fighter"),
             ("quit", "Exit the game")
         ]
         for command, description in help_text:
@@ -279,3 +283,21 @@ class UserInterface:
         self.game_logic.advance_combat_phase()
         self.console.print("Advanced to the next combat phase.")
         self._display_combat_round_info()
+
+    def _handle_show_fighter(self, args: list) -> None:
+        if len(args) != 1:
+            raise ValueError("Invalid show_fighter command. Use: show_fighter <fighter_name>")
+        fighter_name = args[0]
+        fighter = self.game_logic._get_fighter_by_name(fighter_name)
+        if fighter:
+            self.console.print(f"[bold]{fighter.name}[/bold]")
+            self._display_member_details(fighter)
+        else:
+            self.console.print(f"Fighter {fighter_name} not found.")
+
+    def _handle_use_skill(self, args: list) -> None:
+        if len(args) != 2:
+            raise ValueError("Invalid use_skill command. Use: use_skill <fighter_name> <skill_name>")
+        fighter_name, skill_name = args
+        result = self.game_logic.use_skill(fighter_name, skill_name)
+        self.console.print(result)

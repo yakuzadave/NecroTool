@@ -13,8 +13,6 @@ class GameLogic:
         self.active_fighter_index = 0
         logging.info("GameLogic initialized")
 
-    # ... (existing methods)
-
     def create_new_combat_round(self) -> None:
         """Create a new combat round and add it to the game state."""
         round_number = len(self.game_state.combat_rounds) + 1
@@ -96,8 +94,6 @@ class GameLogic:
             current_round.special_rules.append(rule)
             logging.info(f"Added special rule to combat round {current_round.round_number}: {rule}")
 
-    # Modify the existing methods to incorporate the new combat round logic
-
     def next_turn(self) -> None:
         self.active_fighter_index += 1
         if self.active_fighter_index >= len(self.get_active_gang().members):
@@ -124,4 +120,26 @@ class GameLogic:
             self.update_combat_round_summary(f"{fighter_name} moved to ({x}, {y})")
         return result
 
-    # ... (other existing methods)
+    def use_skill(self, fighter_name: str, skill_name: str) -> str:
+        fighter = self._get_fighter_by_name(fighter_name)
+        if not fighter:
+            return f"Fighter {fighter_name} not found."
+        
+        if skill_name not in fighter.skills:
+            return f"{fighter_name} does not have the skill {skill_name}."
+        
+        # Implement skill effects here. This is a placeholder implementation.
+        effect = f"{fighter_name} used the skill {skill_name}."
+        
+        # Add specific skill effects based on the skill name
+        if skill_name == "Nerves of Steel":
+            effect += " They ignore the next Pinning test they would be required to take."
+        elif skill_name == "Gunfighter":
+            effect += " They can fire two pistol weapons in their next Shooting action without penalty."
+        # Add more skill effects as needed
+        
+        current_phase = self.get_current_combat_phase()
+        if current_phase:
+            self.update_combat_round_summary(effect)
+        
+        return effect
