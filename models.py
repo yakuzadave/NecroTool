@@ -124,6 +124,17 @@ class Scenario(BaseModel):
     duration: Optional[str] = Field(None, description="The expected duration of the scenario, e.g., '3-5 turns' or 'Until all objectives are completed'.")
     rewards: Optional[str] = Field(None, description="General rewards for winning the scenario, e.g., credits, territory, reputation.")
 
+class CombatPhase(BaseModel):
+    name: str = Field(..., description="The name of the phase, e.g., Priority Phase, Movement Phase, Shooting Phase.")
+    description: Optional[str] = Field(None, description="A detailed description of what happens during this phase.")
+    actions: Optional[List[str]] = Field(None, description="List of actions that can be taken during this phase, e.g., Move, Shoot, Charge.")
+
+class CombatRound(BaseModel):
+    round_number: int = Field(..., ge=1, description="The number of the combat round, starting from 1.")
+    phases: List[CombatPhase] = Field(..., description="List of phases that occur in this round of combat.")
+    special_rules: Optional[List[str]] = Field(None, description="Special rules or events that are specific to this round.")
+    summary: Optional[str] = Field(None, description="A summary of key events that took place during this round.")
+
 class GameState(BaseModel):
     gangs: List[Gang]
     battlefield: Battlefield
@@ -131,3 +142,4 @@ class GameState(BaseModel):
     active_gang_index: int = 0
     scenario: Optional[Scenario] = Field(None, description="The current scenario being played")
     max_turns: int = Field(10, description="Maximum number of turns for the game")
+    combat_rounds: List[CombatRound] = Field(default_factory=list, description="List of combat rounds in the game")

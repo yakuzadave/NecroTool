@@ -1,0 +1,55 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class CombatPhase(BaseModel):
+    """
+    Represents a phase within a round of combat, detailing actions taken in this phase.
+    """
+    name: str = Field(..., description="The name of the phase, e.g., Priority Phase, Movement Phase, Shooting Phase.")
+    description: Optional[str] = Field(None, description="A detailed description of what happens during this phase.")
+    actions: Optional[List[str]] = Field(None, description="List of actions that can be taken during this phase, e.g., Move, Shoot, Charge.")
+
+class CombatRound(BaseModel):
+    """
+    Pydantic model for representing a complete round of combat in Necromunda.
+    """
+    round_number: int = Field(..., ge=1, description="The number of the combat round, starting from 1.")
+    phases: List[CombatPhase] = Field(..., description="List of phases that occur in this round of combat.")
+    special_rules: Optional[List[str]] = Field(None, description="Special rules or events that are specific to this round.")
+    summary: Optional[str] = Field(None, description="A summary of key events that took place during this round.")
+
+# Example Combat Round Instance
+example_combat_round = CombatRound(
+    round_number=1,
+    phases=[
+        CombatPhase(
+            name="Priority Phase",
+            description="Determine which gang has priority for the round.",
+            actions=["Roll-off", "Assign Priority"]
+        ),
+        CombatPhase(
+            name="Movement Phase",
+            description="Each fighter can move based on their movement characteristic.",
+            actions=["Move", "Charge", "Retreat"]
+        ),
+        CombatPhase(
+            name="Shooting Phase",
+            description="Fighters with ready markers can shoot at enemies.",
+            actions=["Shoot", "Aim"]
+        ),
+        CombatPhase(
+            name="Close Combat Phase",
+            description="Resolve close combat attacks for engaged fighters.",
+            actions=["Melee Attack", "Fight Back"]
+        ),
+        CombatPhase(
+            name="End Phase",
+            description="Resolve any lingering effects and check for bottle tests.",
+            actions=["Bottle Test", "Recovery Test", "Remove Ready Markers"]
+        )
+    ],
+    special_rules=["Limited Visibility: All ranged attacks suffer a -1 penalty to hit due to low light."],
+    summary="The attacking gang secured priority, advanced towards cover, and inflicted several wounds in the Shooting Phase."
+)
+
+print(example_combat_round.json(indent=4))

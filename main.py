@@ -25,36 +25,28 @@ def get_test_commands() -> List[str]:
         "status",
         "map",
         "objectives",
+        "show_combat_round",
         "attack Crusher Venom",
         "end_activation",
         "attack Venom Crusher",
         "end_activation",
+        "advance_phase",
+        "show_combat_round",
+        "move Smasher 2 3",
+        "end_activation",
+        "move Shadow 1 2",
+        "end_activation",
+        "advance_phase",
+        "show_combat_round",
         "attack Smasher Shadow",
         "end_activation",
         "attack Shadow Smasher",
         "end_activation",
-        "attack Crusher Venom",
-        "end_activation",
-        "attack Venom Crusher",
-        "end_activation",
-        "attack Smasher Shadow",
-        "end_activation",
-        "attack Shadow Smasher",
-        "end_activation",
-        "attack Crusher Venom",
-        "end_activation",
-        "attack Venom Crusher",
-        "end_activation",
-        "attack Smasher Shadow",
-        "end_activation",
-        "attack Shadow Smasher",
-        "end_activation",
+        "advance_phase",
+        "show_combat_round",
         "status",
         "objectives",
         "victory_points",
-        # Updated command to test gang member creation with correct role case
-        '''create_gang_member Goliaths {"name": "TestFighter", "gang": "Goliaths", "role": "Ganger", "movement": 4, "weapon_skill": 4, "ballistic_skill": 4, "strength": 4, "toughness": 4, "wounds": 1, "initiative": 4, "attacks": 1, "leadership": 7, "cool": 7, "willpower": 7, "intelligence": 6, "credits_value": 60, "weapons": [{"name": "Combat Knife", "range": "Melee", "strength": 3, "armor_penetration": 0, "damage": 1, "ammo": "N/A", "traits": ["Melee"]}]}''',
-        "status",
         "quit"
     ]
 
@@ -72,6 +64,9 @@ def main() -> None:
 
     console.print("[bold green]Welcome to the Necromunda Simulation![/bold green]")
     console.print("Enter 'help' for a list of commands.")
+
+    # Initialize the first combat round
+    game_logic.create_new_combat_round()
 
     test_commands = get_test_commands()
 

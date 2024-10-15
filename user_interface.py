@@ -32,7 +32,9 @@ class UserInterface:
                 'use_consumable': self._handle_use_consumable,
                 'show_equipment': self._handle_show_equipment,
                 'show_scenario': self.show_scenario,
-                'check_objectives': self.check_scenario_objectives
+                'check_objectives': self.check_scenario_objectives,
+                'show_combat_round': self._handle_show_combat_round,
+                'advance_phase': self._handle_advance_phase
             }
 
             handler = command_handlers.get(parts[0])
@@ -65,6 +67,8 @@ class UserInterface:
             ("show_equipment <fighter_name>", "Show equipment details for a fighter"),
             ("show_scenario", "Display information about the current scenario"),
             ("check_objectives", "Check and update scenario objectives"),
+            ("show_combat_round", "Display information about the current combat round"),
+            ("advance_phase", "Advance to the next combat phase"),
             ("quit", "Exit the game")
         ]
         for command, description in help_text:
@@ -77,6 +81,8 @@ class UserInterface:
         self.console.print(f"\nCurrent Turn: {self.game_logic.game_state.current_turn}")
         self.console.print(f"Active Gang: {self.game_logic.get_active_gang().name}")
         self.console.print(f"Active Fighter: {self.game_logic.get_active_fighter().name}")
+        
+        self._display_combat_round_info()
 
     def _display_gang_status(self, gang: Any) -> None:
         self.console.print(f"\n[bold]{gang.name} Gang[/bold] (Credits: {gang.credits}, Victory Points: {gang.victory_points})")
@@ -250,3 +256,26 @@ class UserInterface:
                 self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
         else:
             self.console.print("[bold red]No scenario is currently set.[/bold red]")
+
+    def _display_combat_round_info(self) -> None:
+        current_round = self.game_logic.get_current_combat_round()
+        if current_round:
+            self.console.print(f"\n[bold]Current Combat Round: {current_round.round_number}[/bold]")
+            current_phase = self.game_logic.get_current_combat_phase()
+            if current_phase:
+                self.console.print(f"Current Phase: {current_phase.name}")
+                self.console.print(f"Description: {current_phase.description}")
+                if current_phase.actions:
+                    self.console.print(f"Available Actions: {', '.join(current_phase.actions)}")
+            if current_round.special_rules:
+                self.console.print(f"Special Rules: {', '.join(current_round.special_rules)}")
+            if current_round.summary:
+                self.console.print(f"Round Summary: {current_round.summary}")
+
+    def _handle_show_combat_round(self, _: list) -> None:
+        self._display_combat_round_info()
+
+    def _handle_advance_phase(self, _: list) -> None:
+        self.game_logic.advance_combat_phase()
+        self.console.print("Advanced to the next combat phase.")
+        self._display_combat_round_info()
