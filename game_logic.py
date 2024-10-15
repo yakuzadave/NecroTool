@@ -1,6 +1,6 @@
 import logging
 import d20
-from models import GameState, Gang, GangMember, Weapon, SpecialRule, Battlefield, Tile, MissionObjective, ArmorModel
+from models import GameState, Gang, GangMember, Weapon, WeaponTrait, WeaponProfile, SpecialRule, Battlefield, Tile, MissionObjective, ArmorModel
 from database import Database
 from typing import List, Dict, Optional, Tuple
 from gang_builder import create_gang_member
@@ -47,7 +47,27 @@ class GameLogic:
             wounds=2, initiative=2, attacks=1, leadership=7, cool=7, willpower=7, intelligence=6,
             credits_value=120, outlaw=False,
             weapons=[
-                Weapon(name="Combat Shotgun", range="S:8\", L:16\"", strength=4, armor_penetration=0, damage=1, ammo="4+", traits=["Blast (3)", "Knockback"])
+                Weapon(
+                    name="Combat Shotgun",
+                    weapon_type="Basic",
+                    cost=60,
+                    rarity="Common",
+                    traits=[
+                        WeaponTrait(name="Blast", description="This weapon uses the Blast (3\") template."),
+                        WeaponTrait(name="Knockback", description="If the hit roll exceeds the target's Strength, they are knocked back 1\" distance.")
+                    ],
+                    profiles=[
+                        WeaponProfile(
+                            range="Short: 0-8, Long: 8-16",
+                            strength=4,
+                            armor_penetration=0,
+                            damage=1,
+                            ammo_roll="4+",
+                            special_rules=["Blast (3\")", "Knockback"]
+                        )
+                    ],
+                    description="A powerful shotgun favored by Goliath gangers for its raw stopping power."
+                )
             ],
             equipment=[],
             skills=["Nerves of Steel"],
@@ -63,7 +83,24 @@ class GameLogic:
             wounds=1, initiative=2, attacks=1, leadership=6, cool=6, willpower=6, intelligence=6,
             credits_value=80, outlaw=False,
             weapons=[
-                Weapon(name="Fighting Knife", range="Melee", strength=3, armor_penetration=0, damage=1, ammo="N/A", traits=["Melee"])
+                Weapon(
+                    name="Fighting Knife",
+                    weapon_type="Melee",
+                    cost=15,
+                    rarity="Common",
+                    traits=[WeaponTrait(name="Melee", description="This weapon can only be used in close combat.")],
+                    profiles=[
+                        WeaponProfile(
+                            range="Melee",
+                            strength=3,
+                            armor_penetration=0,
+                            damage=1,
+                            ammo_roll=None,
+                            special_rules=["Melee"]
+                        )
+                    ],
+                    description="A sturdy blade favored by Goliath gangers for close-quarters combat."
+                )
             ],
             equipment=[],
             skills=[],
@@ -79,7 +116,24 @@ class GameLogic:
             wounds=1, initiative=4, attacks=1, leadership=7, cool=8, willpower=7, intelligence=7,
             credits_value=100, outlaw=False,
             weapons=[
-                Weapon(name="Lasgun", range="S:12\", L:24\"", strength=3, armor_penetration=0, damage=1, ammo="6+", traits=[])
+                Weapon(
+                    name="Lasgun",
+                    weapon_type="Basic",
+                    cost=40,
+                    rarity="Common",
+                    traits=[WeaponTrait(name="Plentiful", description="This weapon never runs out of ammo.")],
+                    profiles=[
+                        WeaponProfile(
+                            range="Short: 0-12, Long: 12-24",
+                            strength=3,
+                            armor_penetration=0,
+                            damage=1,
+                            ammo_roll="6+",
+                            special_rules=["Plentiful"]
+                        )
+                    ],
+                    description="A reliable energy weapon favored by Escher gangs for its accuracy and low maintenance."
+                )
             ],
             equipment=[],
             skills=["Catfall"],
@@ -95,7 +149,27 @@ class GameLogic:
             wounds=1, initiative=4, attacks=1, leadership=6, cool=7, willpower=7, intelligence=7,
             credits_value=70, outlaw=False,
             weapons=[
-                Weapon(name="Stiletto Knife", range="Melee", strength=3, armor_penetration=-1, damage=1, ammo="N/A", traits=["Melee", "Toxin"])
+                Weapon(
+                    name="Stiletto Knife",
+                    weapon_type="Melee",
+                    cost=20,
+                    rarity="Common",
+                    traits=[
+                        WeaponTrait(name="Melee", description="This weapon can only be used in close combat."),
+                        WeaponTrait(name="Toxin", description="This weapon is coated with a dangerous toxin.")
+                    ],
+                    profiles=[
+                        WeaponProfile(
+                            range="Melee",
+                            strength=3,
+                            armor_penetration=-1,
+                            damage=1,
+                            ammo_roll=None,
+                            special_rules=["Melee", "Toxin"]
+                        )
+                    ],
+                    description="A deadly, poisoned blade favored by Escher assassins for silent kills."
+                )
             ],
             equipment=[],
             skills=[],
@@ -177,7 +251,7 @@ class GameLogic:
         weapon = active_fighter.weapons[0]
         hit_modifier = self.apply_gang_traits(active_fighter, target)
         
-        if weapon.range == "Melee":
+        if weapon.weapon_type == "Melee":
             return self.resolve_melee_attack(active_fighter, target, weapon, hit_modifier)
         else:
             return self.resolve_ranged_attack(active_fighter, target, weapon, hit_modifier)
@@ -190,7 +264,7 @@ class GameLogic:
         attack_log += f"Hit roll: {hit_roll} vs {hit_threshold}+ to hit. {hit_result.capitalize()}! "
         if hit_result == "hit":
             wound_roll = d20.roll("1d6").total
-            to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
+            to_wound = self.calculate_to_wound(weapon.profiles[0].strength, target.toughness)
             wound_result = "wounds" if wound_roll >= to_wound else "fails to wound"
             attack_log += f"Wound roll: {wound_roll} vs {to_wound}+ to wound. {wound_result.capitalize()}! "
             if wound_result == "wounds":
@@ -207,7 +281,7 @@ class GameLogic:
         attack_log += f"Hit roll: {hit_roll} vs {hit_threshold}+ to hit. {hit_result.capitalize()}! "
         if hit_result == "hit":
             wound_roll = d20.roll("1d6").total
-            to_wound = self.calculate_to_wound(weapon.strength, target.toughness)
+            to_wound = self.calculate_to_wound(weapon.profiles[0].strength, target.toughness)
             wound_result = "wounds" if wound_roll >= to_wound else "fails to wound"
             attack_log += f"Wound roll: {wound_roll} vs {to_wound}+ to wound. {wound_result.capitalize()}! "
             if wound_result == "wounds":
@@ -234,13 +308,13 @@ class GameLogic:
 
     def resolve_armor_save(self, target: GangMember, weapon: Weapon) -> bool:
         if target.armor:
-            armor_save_threshold = 7 - target.armor.protection_value + weapon.armor_penetration
+            armor_save_threshold = 7 - target.armor.protection_value + weapon.profiles[0].armor_penetration
             armor_save_roll = d20.roll("1d6").total
             return armor_save_roll >= armor_save_threshold
         return False
 
     def resolve_damage(self, weapon: Weapon, target: GangMember) -> str:
-        damage = weapon.damage
+        damage = weapon.profiles[0].damage
         target.wounds -= damage
         injury_result = ""
         if target.wounds <= 0:

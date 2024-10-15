@@ -1,15 +1,28 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
-from models import Weapon, Equipment, SpecialRule, GangMember, ArmorModel
+from models import Weapon, WeaponTrait, WeaponProfile, Equipment, SpecialRule, GangMember, ArmorModel
 
-class WeaponInput(BaseModel):
+class WeaponTraitInput(BaseModel):
     name: str
+    description: Optional[str] = None
+
+class WeaponProfileInput(BaseModel):
     range: str
     strength: int
     armor_penetration: int
     damage: int
-    ammo: str
-    traits: List[str] = []
+    ammo_roll: Optional[str] = None
+    special_rules: Optional[List[str]] = None
+
+class WeaponInput(BaseModel):
+    name: str
+    weapon_type: str
+    cost: Optional[int] = None
+    rarity: Optional[str] = None
+    traits: Optional[List[WeaponTraitInput]] = None
+    profiles: List[WeaponProfileInput]
+    is_unwieldy: Optional[bool] = False
+    description: Optional[str] = None
 
 class EquipmentInput(BaseModel):
     name: str
@@ -73,7 +86,19 @@ def create_gang_member(input_data: dict) -> GangMember:
     try:
         validated_input = GangMemberInput(**input_data)
         
-        weapons = [Weapon(**w.dict()) for w in validated_input.weapons]
+        weapons = [
+            Weapon(
+                name=w.name,
+                weapon_type=w.weapon_type,
+                cost=w.cost,
+                rarity=w.rarity,
+                traits=[WeaponTrait(**t.dict()) for t in (w.traits or [])],
+                profiles=[WeaponProfile(**p.dict()) for p in w.profiles],
+                is_unwieldy=w.is_unwieldy,
+                description=w.description
+            )
+            for w in validated_input.weapons
+        ]
         equipment = [Equipment(**e.dict()) for e in validated_input.equipment]
         special_rules = [SpecialRule(**s.dict()) for s in validated_input.special_rules]
         armor = ArmorModel(**validated_input.armor.dict()) if validated_input.armor else None
