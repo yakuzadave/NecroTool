@@ -1,0 +1,53 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class Consumable(BaseModel):
+    """
+    Pydantic model for representing Necromunda consumables.
+    """
+    name: str = Field(..., description="The name of the consumable item, e.g., Stimm-Slug Stash, Medipack.")
+    cost: Optional[int] = Field(None, description="The credit cost of the consumable item.")
+    rarity: Optional[str] = Field(None, description="The rarity level of the consumable, used to determine availability in trading post.")
+    uses: int = Field(..., ge=1, description="The number of uses the consumable item has.")
+    effect: str = Field(..., description="The effect or benefit provided by the consumable item.")
+    side_effects: Optional[str] = Field(None, description="Any negative side effects of using the consumable item.")
+    description: Optional[str] = Field(None, description="A detailed description of the consumable, including lore or fluff.")
+
+class Equipment(BaseModel):
+    """
+    Pydantic model for representing Necromunda equipment.
+    """
+    name: str = Field(..., description="The name of the equipment, e.g., Grapnel Launcher, Photo-Visor.")
+    cost: Optional[int] = Field(None, description="The credit cost of the equipment item.")
+    rarity: Optional[str] = Field(None, description="The rarity level of the equipment, used to determine availability in trading post.")
+    weight: Optional[str] = Field(None, description="The weight category of the equipment, e.g., Light, Medium, Heavy.")
+    special_rules: Optional[List[str]] = Field(None, description="Special rules or abilities provided by the equipment.")
+    modifiers: Optional[List[str]] = Field(None, description="Stat modifiers provided by the equipment, e.g., +1 to Strength.")
+    is_restricted: Optional[bool] = Field(False, description="Indicates whether the equipment is restricted and requires special permission to use.")
+    description: Optional[str] = Field(None, description="A detailed description of the equipment, including lore or fluff.")
+
+# Example Consumable Instance
+example_consumable = Consumable(
+    name="Stimm-Slug Stash",
+    cost=50,
+    rarity="Common",
+    uses=3,
+    effect="Provides +1 to Strength and Toughness for one round.",
+    side_effects="The ganger suffers a -1 penalty to Initiative for the rest of the game.",
+    description="A stash of potent combat drugs that provide temporary boosts but come at a cost."
+)
+
+# Example Equipment Instance
+example_equipment = Equipment(
+    name="Grapnel Launcher",
+    cost=60,
+    rarity="Rare (8)",
+    weight="Light",
+    special_rules=["Allows the user to move vertically without climbing tests."],
+    modifiers=["+1 to Initiative when used"],
+    is_restricted=False,
+    description="A grapnel launcher is a device that fires a hook attached to a line, allowing gangers to scale vertical surfaces easily."
+)
+
+print(example_consumable.json(indent=4))
+print(example_equipment.json(indent=4))

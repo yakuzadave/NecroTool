@@ -23,9 +23,24 @@ class Weapon(BaseModel):
     is_unwieldy: Optional[bool] = Field(False, description="Indicates whether the weapon is unwieldy, adding penalties to movement or attack.")
     description: Optional[str] = Field(None, description="A detailed description of the weapon, including lore or fluff.")
 
+class Consumable(BaseModel):
+    name: str = Field(..., description="The name of the consumable item, e.g., Stimm-Slug Stash, Medipack.")
+    cost: Optional[int] = Field(None, description="The credit cost of the consumable item.")
+    rarity: Optional[str] = Field(None, description="The rarity level of the consumable, used to determine availability in trading post.")
+    uses: int = Field(..., ge=1, description="The number of uses the consumable item has.")
+    effect: str = Field(..., description="The effect or benefit provided by the consumable item.")
+    side_effects: Optional[str] = Field(None, description="Any negative side effects of using the consumable item.")
+    description: Optional[str] = Field(None, description="A detailed description of the consumable, including lore or fluff.")
+
 class Equipment(BaseModel):
-    name: str
-    description: str
+    name: str = Field(..., description="The name of the equipment, e.g., Grapnel Launcher, Photo-Visor.")
+    cost: Optional[int] = Field(None, description="The credit cost of the equipment item.")
+    rarity: Optional[str] = Field(None, description="The rarity level of the equipment, used to determine availability in trading post.")
+    weight: Optional[str] = Field(None, description="The weight category of the equipment, e.g., Light, Medium, Heavy.")
+    special_rules: Optional[List[str]] = Field(None, description="Special rules or abilities provided by the equipment.")
+    modifiers: Optional[List[str]] = Field(None, description="Stat modifiers provided by the equipment, e.g., +1 to Strength.")
+    is_restricted: Optional[bool] = Field(False, description="Indicates whether the equipment is restricted and requires special permission to use.")
+    description: Optional[str] = Field(None, description="A detailed description of the equipment, including lore or fluff.")
 
 class SpecialRule(BaseModel):
     name: str
@@ -58,6 +73,7 @@ class GangMember(BaseModel):
     outlaw: bool = Field(False, description="Indicates if the gang member belongs to an outlaw gang")
     weapons: List[Weapon] = Field(..., description="List of weapons carried by the gang member")
     equipment: List[Equipment] = Field(default_factory=list, description="List of equipment carried by the gang member")
+    consumables: List[Consumable] = Field(default_factory=list, description="List of consumables carried by the gang member")
     skills: List[str] = Field(default_factory=list, description="List of skills the gang member possesses (e.g., Nerves of Steel, Combat Master)")
     special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the gang member")
     injuries: List[str] = Field(default_factory=list, description="List of permanent injuries sustained by the gang member")

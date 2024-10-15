@@ -1,6 +1,6 @@
 import logging
 import d20
-from models import GameState, Gang, GangMember, Weapon, WeaponTrait, WeaponProfile, SpecialRule, Battlefield, Tile, MissionObjective, ArmorModel
+from models import GameState, Gang, GangMember, Weapon, WeaponTrait, WeaponProfile, SpecialRule, Battlefield, Tile, MissionObjective, ArmorModel, Consumable, Equipment
 from database import Database
 from typing import List, Dict, Optional, Tuple
 from gang_builder import create_gang_member
@@ -73,7 +73,9 @@ class GameLogic:
             skills=["Nerves of Steel"],
             special_rules=[SpecialRule(name="Unstoppable", description="This fighter may ignore Flesh Wounds when making Injury rolls.", effect="Ignore Flesh Wounds on Injury rolls")],
             armor=ArmorModel(name="Mesh Armor", protection_value=4, locations=["Body", "Arms"], special_rules=["Flexible"]),
-            xp=0
+            xp=0,
+            consumables=[],
+            injuries=[]
         )
 
     def _create_goliath_ganger(self) -> GangMember:
@@ -106,7 +108,9 @@ class GameLogic:
             skills=[],
             special_rules=[],
             armor=ArmorModel(name="Flak Armor", protection_value=5, locations=["Body"], special_rules=[]),
-            xp=0
+            xp=0,
+            consumables=[],
+            injuries=[]
         )
 
     def _create_escher_champion(self) -> GangMember:
@@ -139,7 +143,9 @@ class GameLogic:
             skills=["Catfall"],
             special_rules=[SpecialRule(name="Agile", description="This fighter is exceptionally agile.", effect="Improve Dodge rolls")],
             armor=ArmorModel(name="Mesh Armor", protection_value=4, locations=["Body", "Arms"], special_rules=["Flexible"]),
-            xp=0
+            xp=0,
+            consumables=[],
+            injuries=[]
         )
 
     def _create_escher_ganger(self) -> GangMember:
@@ -175,7 +181,9 @@ class GameLogic:
             skills=[],
             special_rules=[],
             armor=ArmorModel(name="Flak Armor", protection_value=5, locations=["Body"], special_rules=[]),
-            xp=0
+            xp=0,
+            consumables=[],
+            injuries=[]
         )
 
     def _create_battlefield(self) -> Battlefield:
@@ -251,6 +259,10 @@ class GameLogic:
         weapon = active_fighter.weapons[0]
         hit_modifier = self.apply_gang_traits(active_fighter, target)
         
+        # Apply equipment effects before attack
+        self.apply_equipment_effects(active_fighter)
+        self.apply_equipment_effects(target)
+
         if weapon.weapon_type == "Melee":
             return self.resolve_melee_attack(active_fighter, target, weapon, hit_modifier)
         else:
@@ -430,3 +442,59 @@ class GameLogic:
         except ValueError as e:
             logging.error(f"Error creating gang member: {str(e)}")
             return f"Error: {str(e)}"
+
+    def use_consumable(self, fighter_name: str, consumable_name: str) -> str:
+        fighter = self._get_fighter_by_name(fighter_name)
+        if not fighter:
+            return f"Fighter {fighter_name} not found."
+
+        consumable = next((c for c in fighter.consumables if c.name.lower() == consumable_name.lower()), None)
+        if not consumable:
+            return f"{fighter_name} doesn't have a {consumable_name}."
+
+        if consumable.uses <= 0:
+            return f"{consumable_name} has no uses left."
+
+        effect_result = self._apply_consumable_effect(fighter, consumable)
+        consumable.uses -= 1
+        if consumable.uses <= 0:
+            fighter.consumables.remove(consumable)
+
+        return effect_result
+
+    def _apply_consumable_effect(self, fighter: GangMember, consumable: Consumable) -> str:
+        effect_description = f"{fighter.name} uses {consumable.name}. {consumable.effect}"
+        
+        # Apply the effect based on the consumable's name or effect description
+        if "Stimm-Slug" in consumable.name:
+            fighter.strength += 1
+            fighter.toughness += 1
+            effect_description += f" {fighter.name}'s Strength and Toughness increased by 1 for one round."
+        elif "Medipack" in consumable.name:
+            healed_wounds = min(d20.roll("1d3").total, fighter.wounds)
+            fighter.wounds += healed_wounds
+            effect_description += f" {fighter.name} regains {healed_wounds} wound(s)."
+
+        if consumable.side_effects:
+            effect_description += f" Side effect: {consumable.side_effects}"
+
+        return effect_description
+
+    def apply_equipment_effects(self, fighter: GangMember) -> None:
+        for equipment in fighter.equipment:
+            if equipment.modifiers:
+                for modifier in equipment.modifiers:
+                    self._apply_equipment_modifier(fighter, modifier)
+
+    def _apply_equipment_modifier(self, fighter: GangMember, modifier: str) -> None:
+        stat, value = modifier.split()
+        value = int(value)
+        if stat in fighter.__dict__:
+            setattr(fighter, stat, getattr(fighter, stat) + value)
+
+    def _get_fighter_by_name(self, name: str) -> Optional[GangMember]:
+        for gang in self.game_state.gangs:
+            for member in gang.members:
+                if member.name.lower() == name.lower():
+                    return member
+        return None

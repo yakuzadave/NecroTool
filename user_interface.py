@@ -3,7 +3,7 @@ from rich.console import Console
 from rich.table import Table
 from game_logic import GameLogic
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 class UserInterface:
     """
@@ -45,7 +45,9 @@ class UserInterface:
                 'map': self.show_battlefield,
                 'objectives': self.show_mission_objectives,
                 'victory_points': self.show_victory_points,
-                'create_gang_member': self._handle_create_gang_member
+                'create_gang_member': self._handle_create_gang_member,
+                'use_consumable': self._handle_use_consumable,
+                'show_equipment': self._handle_show_equipment
             }
 
             handler = command_handlers.get(parts[0])
@@ -61,7 +63,7 @@ class UserInterface:
             self.console.print(f"[bold red]An unexpected error occurred:[/bold red] {str(e)}")
             logging.error(f"Unexpected error in process_command: {str(e)}", exc_info=True)
 
-    def show_help(self, _: list = None) -> None:
+    def show_help(self, _: Optional[List[str]] = None) -> None:
         """Display help information."""
         self.console.print("[bold]Available commands:[/bold]")
         help_text = [
@@ -75,12 +77,14 @@ class UserInterface:
             ("objectives", "Show current mission objectives"),
             ("victory_points", "Show current victory points"),
             ("create_gang_member <gang_name> <member_data_json>", "Create a custom gang member"),
+            ("use_consumable <fighter_name> <consumable_name>", "Use a consumable item"),
+            ("show_equipment <fighter_name>", "Show equipment details for a fighter"),
             ("quit", "Exit the game")
         ]
         for command, description in help_text:
             self.console.print(f"  {command} - {description}")
 
-    def show_status(self, _: list = None) -> None:
+    def show_status(self, _: Optional[List[str]] = None) -> None:
         """Display the status of all gang members."""
         for gang in self.game_logic.game_state.gangs:
             self._display_gang_status(gang)
@@ -144,15 +148,18 @@ class UserInterface:
             self.console.print(f"\n[bold]{member.name}[/bold]")
             self._display_weapons(member)
             self._display_equipment(member)
+            self._display_consumables(member)
             self._display_skills_and_rules(member)
 
     def _display_weapons(self, member: Any) -> None:
         """Display weapons for a gang member."""
         self.console.print("  Weapons:")
         for weapon in member.weapons:
-            self.console.print(f"    - {weapon.name} (Range: {weapon.range}, S: {weapon.strength}, AP: {weapon.armor_penetration}, D: {weapon.damage}, Ammo: {weapon.ammo})")
+            self.console.print(f"    - {weapon.name} (Type: {weapon.weapon_type})")
+            for profile in weapon.profiles:
+                self.console.print(f"      Range: {profile.range}, S: {profile.strength}, AP: {profile.armor_penetration}, D: {profile.damage}, Ammo: {profile.ammo_roll}")
             if weapon.traits:
-                self.console.print(f"      Traits: {', '.join(weapon.traits)}")
+                self.console.print(f"      Traits: {', '.join([trait.name for trait in weapon.traits])}")
 
     def _display_equipment(self, member: Any) -> None:
         """Display equipment for a gang member."""
@@ -160,6 +167,17 @@ class UserInterface:
             self.console.print("  Equipment:")
             for item in member.equipment:
                 self.console.print(f"    - {item.name}: {item.description}")
+                if item.special_rules:
+                    self.console.print(f"      Special Rules: {', '.join(item.special_rules)}")
+                if item.modifiers:
+                    self.console.print(f"      Modifiers: {', '.join(item.modifiers)}")
+
+    def _display_consumables(self, member: Any) -> None:
+        """Display consumables for a gang member."""
+        if member.consumables:
+            self.console.print("  Consumables:")
+            for item in member.consumables:
+                self.console.print(f"    - {item.name} (Uses: {item.uses}): {item.effect}")
 
     def _display_skills_and_rules(self, member: Any) -> None:
         """Display skills and special rules for a gang member."""
@@ -196,21 +214,21 @@ class UserInterface:
         self.game_logic.save_game_state()
         self.console.print("Game state saved.")
 
-    def show_battlefield(self, _: list = None) -> None:
+    def show_battlefield(self, _: Optional[List[str]] = None) -> None:
         """Display the battlefield map."""
         battlefield_state = self.game_logic.get_battlefield_state()
         self.console.print("[bold]Battlefield Map:[/bold]")
         self.console.print(battlefield_state)
         self.console.print("Legend: . = Open, # = Cover, 1-2 = Elevation")
 
-    def show_mission_objectives(self, _: list = None) -> None:
+    def show_mission_objectives(self, _: Optional[List[str]] = None) -> None:
         """Display the current mission objectives."""
         self.console.print("[bold]Mission Objectives:[/bold]")
         for objective in self.game_logic.game_state.mission_objectives:
             status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
             self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
 
-    def show_victory_points(self, _: list = None) -> None:
+    def show_victory_points(self, _: Optional[List[str]] = None) -> None:
         """Display the current victory points for each gang."""
         self.console.print("[bold]Current Victory Points:[/bold]")
         results = self.game_logic.calculate_victory_points()
@@ -233,3 +251,23 @@ class UserInterface:
             self.console.print(result)
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON format for member data")
+
+    def _handle_use_consumable(self, args: list) -> None:
+        """Handle the use_consumable command."""
+        if len(args) != 2:
+            raise ValueError("Invalid use_consumable command. Use: use_consumable <fighter_name> <consumable_name>")
+        fighter_name, consumable_name = args
+        result = self.game_logic.use_consumable(fighter_name, consumable_name)
+        self.console.print(result)
+
+    def _handle_show_equipment(self, args: list) -> None:
+        """Handle the show_equipment command."""
+        if len(args) != 1:
+            raise ValueError("Invalid show_equipment command. Use: show_equipment <fighter_name>")
+        fighter_name = args[0]
+        fighter = self.game_logic._get_fighter_by_name(fighter_name)
+        if fighter:
+            self.console.print(f"[bold]{fighter.name}'s Equipment:[/bold]")
+            self._display_equipment(fighter)
+        else:
+            self.console.print(f"Fighter {fighter_name} not found.")
