@@ -1,0 +1,61 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class ScenarioObjective(BaseModel):
+    """
+    Represents an objective for a scenario, detailing what gangs need to accomplish.
+    """
+    name: str = Field(..., description="The name of the objective, e.g., Capture the Flag, Defend the Territory.")
+    description: Optional[str] = Field(None, description="A detailed description of the objective and how it impacts gameplay.")
+    rewards: Optional[str] = Field(None, description="Rewards for completing the objective, such as credits or reputation.")
+
+class ScenarioDeploymentZone(BaseModel):
+    """
+    Represents a deployment zone, defining where gangs can start the scenario.
+    """
+    name: str = Field(..., description="The name of the deployment zone, e.g., Zone A, Northern Sector.")
+    description: Optional[str] = Field(None, description="A detailed description of the deployment zone.")
+    starting_positions: Optional[str] = Field(None, description="Information about starting positions for each gang.")
+
+class ScenarioSpecialRule(BaseModel):
+    """
+    Represents special rules that modify how the scenario is played.
+    """
+    name: str = Field(..., description="The name of the special rule, e.g., Toxic Fog, Reinforcements.")
+    effect: Optional[str] = Field(None, description="A description of the effect the special rule has on the scenario.")
+
+class Scenario(BaseModel):
+    """
+    Pydantic model for representing a Necromunda scenario.
+    """
+    name: str = Field(..., description="The name of the scenario, e.g., Ambush, Turf War.")
+    description: Optional[str] = Field(None, description="A detailed description of the scenario, including lore or fluff.")
+    objectives: List[ScenarioObjective] = Field(..., description="List of objectives that gangs must accomplish during the scenario.")
+    deployment_zones: List[ScenarioDeploymentZone] = Field(..., description="List of deployment zones available in the scenario.")
+    special_rules: Optional[List[ScenarioSpecialRule]] = Field(None, description="List of special rules that modify how the scenario is played.")
+    max_gangs: Optional[int] = Field(2, description="The maximum number of gangs that can participate in the scenario.")
+    duration: Optional[str] = Field(None, description="The expected duration of the scenario, e.g., '3-5 turns' or 'Until all objectives are completed'.")
+    rewards: Optional[str] = Field(None, description="General rewards for winning the scenario, e.g., credits, territory, reputation.")
+
+# Example Scenario Instance
+example_scenario = Scenario(
+    name="Ambush",
+    description="One gang sets up an ambush to catch their rivals off guard. This scenario is tense and requires strategic planning.",
+    objectives=[
+        ScenarioObjective(name="Eliminate Targets", description="The attacking gang must eliminate at least 50% of the defending gang.", rewards="+100 credits for completing the objective."),
+        ScenarioObjective(name="Escape", description="The defending gang must get at least half of their fighters off the board edge.", rewards="+50 credits for each fighter that escapes.")
+    ],
+    deployment_zones=[
+        ScenarioDeploymentZone(name="Attacker Zone", description="The attackers deploy from the northern edge of the board."),
+        ScenarioDeploymentZone(name="Defender Zone", description="The defenders start in the central section of the board.")
+    ],
+    special_rules=[
+        ScenarioSpecialRule(name="Surprise Attack", effect="The defending gang cannot take Ready actions during the first turn."),
+        ScenarioSpecialRule(name="Limited Visibility", effect="All ranged attacks suffer a -1 penalty to hit due to darkness.")
+    ],
+    max_gangs=2,
+    duration="4-6 turns",
+    rewards="The winning gang gains D6x10 credits and 1 reputation."
+)
+
+print(example_scenario.json(indent=4))

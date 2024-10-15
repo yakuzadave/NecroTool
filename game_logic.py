@@ -1,6 +1,7 @@
 import logging
 import d20
-from models import GameState, Gang, GangMember, Weapon, WeaponTrait, WeaponProfile, SpecialRule, Battlefield, Tile, MissionObjective, ArmorModel, Consumable, Equipment
+import random
+from models import GameState, Gang, GangMember, Weapon, WeaponTrait, WeaponProfile, SpecialRule, Battlefield, Tile, ScenarioObjective, ArmorModel, Consumable, Equipment, Scenario, ScenarioDeploymentZone, ScenarioSpecialRule
 from database import Database
 from typing import List, Dict, Optional, Tuple
 from gang_builder import create_gang_member
@@ -25,8 +26,8 @@ class GameLogic:
         gang1 = self._create_goliath_gang()
         gang2 = self._create_escher_gang()
         battlefield = self._create_battlefield()
-        mission_objectives = self._create_mission_objectives()
-        return GameState(gangs=[gang1, gang2], battlefield=battlefield, mission_objectives=mission_objectives)
+        scenario = self._create_default_scenario()
+        return GameState(gangs=[gang1, gang2], battlefield=battlefield, scenario=scenario)
 
     def _create_goliath_gang(self) -> Gang:
         return Gang(name="Goliaths", members=[
@@ -205,12 +206,141 @@ class GameLogic:
             battlefield.tiles[y * 10 + x].type = "elevation"
             battlefield.tiles[y * 10 + x].elevation = d20.roll("1d2").total
 
-    def _create_mission_objectives(self) -> List[MissionObjective]:
-        return [
-            MissionObjective(name="Claim Territory", description="Control the most terrain at the end of the game", points=3),
-            MissionObjective(name="Assassinate Leader", description="Take out the enemy gang's leader", points=5),
-            MissionObjective(name="Scavenge Resources", description="Collect the most resource tokens", points=2)
-        ]
+    def _create_default_scenario(self) -> Scenario:
+        return Scenario(
+            name="Turf War",
+            description="Two gangs clash over control of valuable territory in the underhive.",
+            objectives=[
+                ScenarioObjective(
+                    name="Control Central Zone",
+                    description="Control the central 4x4 area of the battlefield at the end of the game.",
+                    rewards="5 victory points",
+                    points=5
+                ),
+                ScenarioObjective(
+                    name="Eliminate Enemy Leader",
+                    description="Take out the enemy gang's leader.",
+                    rewards="3 victory points",
+                    points=3
+                ),
+                ScenarioObjective(
+                    name="Scavenge Resources",
+                    description="Collect resource tokens scattered across the battlefield.",
+                    rewards="1 victory point per token, up to 3",
+                    points=1
+                )
+            ],
+            deployment_zones=[
+                ScenarioDeploymentZone(
+                    name="Zone A",
+                    description="Deploy within 6\" of the northern table edge."
+                ),
+                ScenarioDeploymentZone(
+                    name="Zone B",
+                    description="Deploy within 6\" of the southern table edge."
+                )
+            ],
+            special_rules=[
+                ScenarioSpecialRule(
+                    name="Unstable Environment",
+                    effect="At the end of each round, roll a d6. On a 6, a random piece of terrain collapses, potentially causing damage to nearby fighters."
+                )
+            ],
+            max_gangs=2,
+            duration="6 rounds or until one gang is broken",
+            rewards="The winning gang gains d3x10 credits and 1 territory."
+        )
+
+    def set_scenario(self, scenario: Scenario) -> None:
+        self.game_state.scenario = scenario
+        logging.info(f"Scenario set: {scenario.name}")
+
+    def get_scenario(self) -> Optional[Scenario]:
+        return self.game_state.scenario
+
+    def check_scenario_objectives(self) -> None:
+        if not self.game_state.scenario:
+            return
+
+        for objective in self.game_state.scenario.objectives:
+            if not objective.completed:
+                self._check_objective(objective)
+
+    def _check_objective(self, objective: ScenarioObjective) -> None:
+        if objective.name == "Control Central Zone":
+            self._check_control_central_zone(objective)
+        elif objective.name == "Eliminate Enemy Leader":
+            self._check_eliminate_enemy_leader(objective)
+        elif objective.name == "Scavenge Resources":
+            self._check_scavenge_resources(objective)
+
+    def _check_control_central_zone(self, objective: ScenarioObjective) -> None:
+        central_zone = [tile for tile in self.game_state.battlefield.tiles
+                        if 3 <= tile.x <= 6 and 3 <= tile.y <= 6]
+        gang_presence = {gang.name: 0 for gang in self.game_state.gangs}
+        
+        for tile in central_zone:
+            for gang in self.game_state.gangs:
+                for member in gang.members:
+                    if member.x == tile.x and member.y == tile.y:
+                        gang_presence[gang.name] += 1
+        
+        controlling_gang = max(gang_presence, key=gang_presence.get)
+        if gang_presence[controlling_gang] > 0:
+            objective.completed = True
+            self._award_victory_points(controlling_gang, objective.points)
+            logging.info(f"{controlling_gang} completed the 'Control Central Zone' objective")
+
+    def _check_eliminate_enemy_leader(self, objective: ScenarioObjective) -> None:
+        for gang in self.game_state.gangs:
+            if not any(member.role == "Leader" and member.wounds > 0 for member in gang.members):
+                opposing_gang = next(g for g in self.game_state.gangs if g != gang)
+                objective.completed = True
+                self._award_victory_points(opposing_gang.name, objective.points)
+                logging.info(f"{opposing_gang.name} completed the 'Eliminate Enemy Leader' objective")
+
+    def _check_scavenge_resources(self, objective: ScenarioObjective) -> None:
+        pass
+
+    def _award_victory_points(self, gang_name: str, points: int) -> None:
+        gang = next(gang for gang in self.game_state.gangs if gang.name == gang_name)
+        gang.victory_points += points
+        logging.info(f"{gang_name} awarded {points} victory points")
+
+    def apply_scenario_special_rules(self) -> None:
+        if not self.game_state.scenario or not self.game_state.scenario.special_rules:
+            return
+
+        for rule in self.game_state.scenario.special_rules:
+            if rule.name == "Unstable Environment":
+                self._apply_unstable_environment()
+
+    def _apply_unstable_environment(self) -> None:
+        if d20.roll("1d6").total == 6:
+            collapsible_terrain = [tile for tile in self.game_state.battlefield.tiles if tile.type == "cover" or tile.elevation > 0]
+            if collapsible_terrain:
+                collapsed_terrain = random.choice(collapsible_terrain)
+                self._collapse_terrain(collapsed_terrain)
+
+    def _collapse_terrain(self, tile: Tile) -> None:
+        if tile.type == "cover":
+            tile.type = "open"
+        elif tile.elevation > 0:
+            tile.elevation -= 1
+        
+        affected_fighters = self._get_affected_fighters(tile)
+        for fighter in affected_fighters:
+            damage = d20.roll("1d3").total
+            fighter.wounds = max(0, fighter.wounds - damage)
+            logging.info(f"{fighter.name} took {damage} damage from collapsing terrain")
+
+    def _get_affected_fighters(self, tile: Tile) -> List[GangMember]:
+        affected_fighters = []
+        for gang in self.game_state.gangs:
+            for member in gang.members:
+                if abs(member.x - tile.x) <= 1 and abs(member.y - tile.y) <= 1:
+                    affected_fighters.append(member)
+        return affected_fighters
 
     def save_game_state(self) -> None:
         self.db.save_game_state(self.game_state.dict())
@@ -230,7 +360,8 @@ class GameLogic:
             self.game_state.active_gang_index = (self.game_state.active_gang_index + 1) % len(self.game_state.gangs)
             if self.game_state.active_gang_index == 0:
                 self.game_state.current_turn += 1
-                self.check_mission_objectives()
+                self.check_scenario_objectives()
+                self.apply_scenario_special_rules()
         logging.info(f"Next turn: {self.game_state.current_turn}, Active gang: {self.get_active_gang().name}, Active fighter: {self.get_active_fighter().name}")
 
     def move_fighter(self, fighter_name: str, x: int, y: int) -> bool:
@@ -259,7 +390,6 @@ class GameLogic:
         weapon = active_fighter.weapons[0]
         hit_modifier = self.apply_gang_traits(active_fighter, target)
         
-        # Apply equipment effects before attack
         self.apply_equipment_effects(active_fighter)
         self.apply_equipment_effects(target)
 
@@ -380,42 +510,8 @@ class GameLogic:
         self.next_turn()
         return f"Activation ended. Active fighter: {self.get_active_fighter().name} ({self.get_active_gang().name})"
 
-    def check_mission_objectives(self) -> None:
-        for objective in self.game_state.mission_objectives:
-            if objective.name == "Claim Territory":
-                self.check_claim_territory_objective()
-            elif objective.name == "Assassinate Leader":
-                self.check_assassinate_leader_objective()
-            elif objective.name == "Scavenge Resources":
-                self.check_scavenge_resources_objective()
-
-    def check_claim_territory_objective(self) -> None:
-        pass
-
-    def check_assassinate_leader_objective(self) -> None:
-        for gang in self.game_state.gangs:
-            if not any(member.role == "Leader" for member in gang.members):
-                opposing_gang = next(g for g in self.game_state.gangs if g != gang)
-                opposing_gang.victory_points += 5
-                objective = next(obj for obj in self.game_state.mission_objectives if obj.name == "Assassinate Leader")
-                objective.completed = True
-                logging.info(f"{opposing_gang.name} completed 'Assassinate Leader' objective")
-
-    def check_scavenge_resources_objective(self) -> None:
-        pass
-
-    def calculate_victory_points(self) -> List[Dict[str, int]]:
-        results = []
-        for gang in self.game_state.gangs:
-            gang_vp = gang.victory_points
-            for objective in self.game_state.mission_objectives:
-                if objective.completed:
-                    gang_vp += objective.points
-            results.append({"gang": gang.name, "victory_points": gang_vp})
-        return results
-
     def is_game_over(self) -> bool:
-        return self.game_state.current_turn > self.game_state.max_turns or all(obj.completed for obj in self.game_state.mission_objectives)
+        return self.game_state.current_turn > self.game_state.scenario.duration or all(obj.completed for obj in self.game_state.scenario.objectives)
 
     def get_winner(self) -> str:
         if not self.is_game_over():
@@ -465,7 +561,6 @@ class GameLogic:
     def _apply_consumable_effect(self, fighter: GangMember, consumable: Consumable) -> str:
         effect_description = f"{fighter.name} uses {consumable.name}. {consumable.effect}"
         
-        # Apply the effect based on the consumable's name or effect description
         if "Stimm-Slug" in consumable.name:
             fighter.strength += 1
             fighter.toughness += 1
@@ -498,3 +593,13 @@ class GameLogic:
                 if member.name.lower() == name.lower():
                     return member
         return None
+
+    def calculate_victory_points(self) -> List[Dict[str, int]]:
+        results = []
+        for gang in self.game_state.gangs:
+            gang_vp = gang.victory_points
+            for objective in self.game_state.scenario.objectives:
+                if objective.completed:
+                    gang_vp += objective.points
+            results.append({"gang": gang.name, "victory_points": gang_vp})
+        return results
