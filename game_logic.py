@@ -1,6 +1,6 @@
 import logging
 import d20
-from models import GameState, Gang, GangMember, Weapon, SpecialRule, Battlefield, Tile, MissionObjective
+from models import GameState, Gang, GangMember, Weapon, SpecialRule, Battlefield, Tile, MissionObjective, ArmorModel
 from database import Database
 from typing import List, Dict, Optional, Tuple
 from gang_builder import create_gang_member
@@ -52,6 +52,7 @@ class GameLogic:
             equipment=[],
             skills=["Nerves of Steel"],
             special_rules=[SpecialRule(name="Unstoppable", description="This fighter may ignore Flesh Wounds when making Injury rolls.", effect="Ignore Flesh Wounds on Injury rolls")],
+            armor=ArmorModel(name="Mesh Armor", protection_value=4, locations=["Body", "Arms"], special_rules=["Flexible"]),
             xp=0
         )
 
@@ -67,6 +68,7 @@ class GameLogic:
             equipment=[],
             skills=[],
             special_rules=[],
+            armor=ArmorModel(name="Flak Armor", protection_value=5, locations=["Body"], special_rules=[]),
             xp=0
         )
 
@@ -82,6 +84,7 @@ class GameLogic:
             equipment=[],
             skills=["Catfall"],
             special_rules=[SpecialRule(name="Agile", description="This fighter is exceptionally agile.", effect="Improve Dodge rolls")],
+            armor=ArmorModel(name="Mesh Armor", protection_value=4, locations=["Body", "Arms"], special_rules=["Flexible"]),
             xp=0
         )
 
@@ -97,6 +100,7 @@ class GameLogic:
             equipment=[],
             skills=[],
             special_rules=[],
+            armor=ArmorModel(name="Flak Armor", protection_value=5, locations=["Body"], special_rules=[]),
             xp=0
         )
 
@@ -229,9 +233,11 @@ class GameLogic:
             return 5
 
     def resolve_armor_save(self, target: GangMember, weapon: Weapon) -> bool:
-        armor_save_threshold = 6 + weapon.armor_penetration
-        armor_save_roll = d20.roll("1d6").total
-        return armor_save_roll >= armor_save_threshold
+        if target.armor:
+            armor_save_threshold = 7 - target.armor.protection_value + weapon.armor_penetration
+            armor_save_roll = d20.roll("1d6").total
+            return armor_save_roll >= armor_save_threshold
+        return False
 
     def resolve_damage(self, weapon: Weapon, target: GangMember) -> str:
         damage = weapon.damage

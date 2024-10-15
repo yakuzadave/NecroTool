@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
-from models import Weapon, Equipment, SpecialRule, GangMember
+from models import Weapon, Equipment, SpecialRule, GangMember, ArmorModel
 
 class WeaponInput(BaseModel):
     name: str
@@ -19,6 +19,12 @@ class SpecialRuleInput(BaseModel):
     name: str
     description: str
     effect: str
+
+class ArmorInput(BaseModel):
+    name: str = Field(..., description="Name of the armor")
+    protection_value: int = Field(..., ge=0, le=6, description="Protection value of the armor, between 0 and 6")
+    locations: List[str] = Field(..., description="Body locations covered by the armor")
+    special_rules: List[str] = Field(default_factory=list, description="Special rules associated with the armor")
 
 class GangMemberInput(BaseModel):
     name: str = Field(..., description="Name of the gang member")
@@ -42,6 +48,7 @@ class GangMemberInput(BaseModel):
     equipment: List[EquipmentInput] = Field(default_factory=list, description="List of equipment carried by the gang member")
     skills: List[str] = Field(default_factory=list, description="List of skills the gang member possesses (e.g., Nerves of Steel, Combat Master)")
     special_rules: List[SpecialRuleInput] = Field(default_factory=list, description="List of special rules that apply to the gang member")
+    armor: Optional[ArmorInput] = Field(None, description="Armor worn by the gang member")
 
     @validator('role')
     def validate_role(cls, v):
@@ -69,12 +76,14 @@ def create_gang_member(input_data: dict) -> GangMember:
         weapons = [Weapon(**w.dict()) for w in validated_input.weapons]
         equipment = [Equipment(**e.dict()) for e in validated_input.equipment]
         special_rules = [SpecialRule(**s.dict()) for s in validated_input.special_rules]
+        armor = ArmorModel(**validated_input.armor.dict()) if validated_input.armor else None
 
         return GangMember(
-            **validated_input.dict(exclude={'weapons', 'equipment', 'special_rules'}),
+            **validated_input.dict(exclude={'weapons', 'equipment', 'special_rules', 'armor'}),
             weapons=weapons,
             equipment=equipment,
             special_rules=special_rules,
+            armor=armor,
             xp=0
         )
     except ValueError as e:

@@ -19,6 +19,12 @@ class SpecialRule(BaseModel):
     description: str
     effect: str
 
+class ArmorModel(BaseModel):
+    name: str = Field(..., description="Name of the armor")
+    protection_value: int = Field(..., ge=0, le=6, description="Protection value of the armor, between 0 and 6")
+    locations: List[str] = Field(..., description="Body locations covered by the armor")
+    special_rules: List[str] = Field(default_factory=list, description="Special rules associated with the armor")
+
 class GangMember(BaseModel):
     name: str = Field(..., description="Name of the gang member")
     gang: str = Field(..., description="Gang to which this member belongs (e.g., Goliath, Escher, Cawdor)")
@@ -43,6 +49,7 @@ class GangMember(BaseModel):
     special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the gang member")
     injuries: List[str] = Field(default_factory=list, description="List of permanent injuries sustained by the gang member")
     xp: int = Field(0, description="Experience points earned by the gang member")
+    armor: Optional[ArmorModel] = Field(None, description="Armor worn by the gang member")
 
 class Gang(BaseModel):
     name: str
