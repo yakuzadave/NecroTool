@@ -1,6 +1,22 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 
+class ArmorModifier(BaseModel):
+    modifier_type: str
+    value: int
+    description: Optional[str] = None
+
+class Armor(BaseModel):
+    name: str
+    armor_rating: int
+    save_modifier: Optional[int] = None
+    armor_type: str
+    special_rules: Optional[List[str]] = None
+    modifiers: Optional[List[ArmorModifier]] = None
+    is_bulk: Optional[bool] = None
+    cost: Optional[int] = None
+    description: Optional[str] = None
+
 class WeaponTrait(BaseModel):
     name: str = Field(..., description="The name of the weapon trait (e.g., Rapid Fire, Knockback, Unwieldy).")
     description: Optional[str] = Field(None, description="A description of the trait and its effect on the weapon or ganger.")
@@ -47,16 +63,9 @@ class SpecialRule(BaseModel):
     description: str
     effect: str
 
-class ArmorModel(BaseModel):
-    name: str = Field(..., description="Name of the armor")
-    protection_value: int = Field(..., ge=0, le=6, description="Protection value of the armor, between 0 and 6")
-    locations: List[str] = Field(..., description="Body locations covered by the armor")
-    special_rules: List[str] = Field(default_factory=list, description="Special rules associated with the armor")
-
-class GangMember(BaseModel):
+class Ganger(BaseModel):
     name: str = Field(..., description="Name of the gang member")
-    gang: str = Field(..., description="Gang to which this member belongs (e.g., Goliath, Escher, Cawdor)")
-    role: str = Field(..., description="Role in the gang (e.g., Leader, Champion, Ganger, Juve)")
+    gang_affiliation: str = Field(..., description="Gang to which this member belongs (e.g., Goliath, Escher, Cawdor)")
     movement: int = Field(..., description="Movement characteristic")
     weapon_skill: int = Field(..., ge=2, le=6, description="Weapon Skill (WS) characteristic, between 2+ and 6+")
     ballistic_skill: int = Field(..., ge=2, le=6, description="Ballistic Skill (BS) characteristic, between 2+ and 6+")
@@ -67,22 +76,20 @@ class GangMember(BaseModel):
     attacks: int = Field(..., description="Number of attacks")
     leadership: int = Field(..., ge=2, le=10, description="Leadership characteristic, between 2 and 10")
     cool: int = Field(..., ge=2, le=10, description="Cool characteristic, between 2 and 10")
-    willpower: int = Field(..., ge=2, le=10, description="Willpower characteristic, between 2 and 10")
+    will: int = Field(..., ge=2, le=10, description="Will characteristic, between 2 and 10")
     intelligence: int = Field(..., ge=2, le=10, description="Intelligence characteristic, between 2 and 10")
-    credits_value: int = Field(..., description="Credits value assigned to this gang member for balancing purposes")
-    outlaw: bool = Field(False, description="Indicates if the gang member belongs to an outlaw gang")
-    weapons: List[Weapon] = Field(..., description="List of weapons carried by the gang member")
-    equipment: List[Equipment] = Field(default_factory=list, description="List of equipment carried by the gang member")
-    consumables: List[Consumable] = Field(default_factory=list, description="List of consumables carried by the gang member")
-    skills: List[str] = Field(default_factory=list, description="List of skills the gang member possesses (e.g., Nerves of Steel, Combat Master)")
+    equipment: Optional[List[Equipment]] = Field(None, description="List of equipment carried by the gang member")
+    weapons: Optional[List[Weapon]] = Field(None, description="List of weapons carried by the gang member")
+    armor: Optional[Armor] = Field(None, description="Armor worn by the gang member")
+    consumables: Optional[List[Consumable]] = Field(None, description="List of consumables carried by the gang member")
+    skills: List[str] = Field(default_factory=list, description="List of skills the gang member possesses")
     special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the gang member")
     injuries: List[str] = Field(default_factory=list, description="List of permanent injuries sustained by the gang member")
     xp: int = Field(0, description="Experience points earned by the gang member")
-    armor: Optional[ArmorModel] = Field(None, description="Armor worn by the gang member")
 
 class Gang(BaseModel):
     name: str
-    members: List[GangMember]
+    members: List[Ganger]
     credits: int = 1000
     special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the entire gang")
     victory_points: int = Field(0, description="Victory points earned by the gang")

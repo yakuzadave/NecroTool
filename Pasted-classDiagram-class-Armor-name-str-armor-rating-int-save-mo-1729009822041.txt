@@ -1,0 +1,132 @@
+classDiagram
+    class Armor {
+        - name: str
+        - armor_rating: int
+        - save_modifier: int?
+        - armor_type: str
+        - special_rules: List~str~?
+        - modifiers: List~ArmorModifier~?
+        - is_bulk: bool?
+        - cost: int?
+        - description: str?
+    }
+    class ArmorModifier {
+        - modifier_type: str
+        - value: int
+        - description: str?
+    }
+    Armor "1" *-- "many" ArmorModifier
+
+    class Weapon {
+        - name: str
+        - weapon_type: str
+        - cost: int?
+        - rarity: str?
+        - traits: List~WeaponTrait~?
+        - profiles: List~WeaponProfile~
+        - is_unwieldy: bool?
+        - description: str?
+    }
+    class WeaponTrait {
+        - name: str
+        - description: str?
+    }
+    class WeaponProfile {
+        - range: str
+        - strength: int
+        - armor_penetration: int
+        - damage: int
+        - ammo_roll: str?
+        - special_rules: List~str~?
+    }
+    Weapon "1" *-- "many" WeaponTrait
+    Weapon "1" *-- "many" WeaponProfile
+
+    class Consumable {
+        - name: str
+        - cost: int?
+        - rarity: str?
+        - uses: int
+        - effect: str
+        - side_effects: str?
+        - description: str?
+    }
+
+    class Equipment {
+        - name: str
+        - cost: int?
+        - rarity: str?
+        - weight: str?
+        - special_rules: List~str~?
+        - modifiers: List~str~?
+        - is_restricted: bool?
+        - description: str?
+    }
+    Equipment "1" <.. "many" Ganger : "can be equipped by"
+
+    class Scenario {
+        - name: str
+        - description: str?
+        - objectives: List~ScenarioObjective~
+        - deployment_zones: List~ScenarioDeploymentZone~
+        - special_rules: List~ScenarioSpecialRule~?
+        - max_gangs: int?
+        - duration: str?
+        - rewards: str?
+    }
+    class ScenarioObjective {
+        - name: str
+        - description: str?
+        - rewards: str?
+    }
+    class ScenarioDeploymentZone {
+        - name: str
+        - description: str?
+        - starting_positions: str?
+    }
+    class ScenarioSpecialRule {
+        - name: str
+        - effect: str?
+    }
+    Scenario "1" *-- "many" ScenarioObjective
+    Scenario "1" *-- "many" ScenarioDeploymentZone
+    Scenario "1" *-- "many" ScenarioSpecialRule
+
+    class CombatRound {
+        - round_number: int
+        - phases: List~CombatPhase~
+        - special_rules: List~str~?
+        - summary: str?
+    }
+    class CombatPhase {
+        - name: str
+        - description: str?
+        - actions: List~str~?
+    }
+    CombatRound "1" *-- "many" CombatPhase
+
+    class Ganger {
+        - name: str
+        - gang_affiliation: str
+        - movement: int
+        - weapon_skill: int
+        - ballistic_skill: int
+        - strength: int
+        - toughness: int
+        - wounds: int
+        - initiative: int
+        - attacks: int
+        - leadership: int
+        - cool: int
+        - will: int
+        - intelligence: int
+        - equipment: List~Equipment~?
+        - weapons: List~Weapon~?
+        - armor: Armor?
+        - consumables: List~Consumable~?
+    }
+    Ganger "1" *-- "many" Equipment
+    Ganger "1" *-- "many" Weapon
+    Ganger "1" *-- "1" Armor
+    Ganger "1" *-- "many" Consumable
+```
