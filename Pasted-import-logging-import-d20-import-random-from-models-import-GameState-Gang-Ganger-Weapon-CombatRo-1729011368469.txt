@@ -1,0 +1,192 @@
+import logging
+import d20
+import random
+from models import GameState, Gang, Ganger, Weapon, CombatRound, CombatPhase, Battlefield, Tile, Scenario
+from database import Database
+from typing import List, Dict, Optional, Union, Literal
+from enum import Enum
+
+# Enum to represent the different phases of combat.
+class PhaseName(Enum):
+    PRIORITY = "Priority Phase"
+    MOVEMENT = "Movement Phase"
+    SHOOTING = "Shooting Phase"
+    CLOSE_COMBAT = "Close Combat Phase"
+    END = "End Phase"
+
+# Enum to represent different types of battlefield tiles.
+class TileType(Enum):
+    OPEN = "open"
+    COVER = "cover"
+
+class GameLogic:
+    def __init__(self, db: Database):
+        # Initialize the GameLogic class with a database instance and game state.
+        self.db = db
+        self.game_state = self._initialize_game_state()
+        self.active_fighter_index = 0
+        logging.info("GameLogic initialized")
+
+    def _initialize_game_state(self) -> GameState:
+        # Initialize the game state, including the battlefield and gangs.
+        battlefield = self._initialize_battlefield()
+        gangs = self._initialize_gangs()
+        return GameState(gangs=gangs, battlefield=battlefield)
+
+    def _initialize_battlefield(self) -> Battlefield:
+        # Create a 24x24 battlefield with random tiles of type 'open' or 'cover'.
+        battlefield = Battlefield(width=24, height=24, tiles={})
+        for x in range(24):
+            for y in range(24):
+                tile_type = TileType.COVER if random.random() < 0.2 else TileType.OPEN
+                battlefield.tiles[(x, y)] = Tile(x=x, y=y, type=tile_type.value)
+        return battlefield
+
+    def _initialize_gangs(self) -> List[Gang]:
+        # Initialize two gangs, Goliaths and Escher, with their respective members.
+        return [
+            Gang(name="Goliaths", members=[
+                Ganger(name="Crusher", gang_affiliation="Goliath", movement=4, weapon_skill=3, ballistic_skill=4,
+                       strength=4, toughness=4, wounds=2, initiative=3, attacks=2, leadership=7, cool=7, will=7,
+                       intelligence=6, weapons=[]),
+                Ganger(name="Smasher", gang_affiliation="Goliath", movement=4, weapon_skill=3, ballistic_skill=4,
+                       strength=4, toughness=4, wounds=2, initiative=3, attacks=2, leadership=7, cool=7, will=7,
+                       intelligence=6, weapons=[])
+            ]),
+            Gang(name="Escher", members=[
+                Ganger(name="Venom", gang_affiliation="Escher", movement=5, weapon_skill=3, ballistic_skill=3,
+                       strength=3, toughness=3, wounds=1, initiative=4, attacks=1, leadership=7, cool=8, will=8,
+                       intelligence=7, weapons=[]),
+                Ganger(name="Shadow", gang_affiliation="Escher", movement=5, weapon_skill=3, ballistic_skill=3,
+                       strength=3, toughness=3, wounds=1, initiative=4, attacks=1, leadership=7, cool=8, will=8,
+                       intelligence=7, weapons=[])
+            ])
+        ]
+
+    def create_new_combat_round(self) -> None:
+        # Create a new combat round, incrementing the round number and initializing phases.
+        round_number = len(self.game_state.combat_rounds) + 1
+        new_round = CombatRound(
+            round_number=round_number,
+            phases=self._create_combat_phases(),
+            special_rules=[],
+            summary=""
+        )
+        self.game_state.combat_rounds.append(new_round)
+        logging.info(f"Created new combat round: {round_number}")
+
+    def _create_combat_phases(self) -> List[CombatPhase]:
+        # Create the list of combat phases for each round.
+        return [
+            CombatPhase(
+                name=PhaseName.PRIORITY.value,
+                description="Determine which gang has priority for the round.",
+                actions=["Roll-off", "Assign Priority"]
+            ),
+            CombatPhase(
+                name=PhaseName.MOVEMENT.value,
+                description="Each fighter can move based on their movement characteristic.",
+                actions=["Move", "Charge", "Retreat"]
+            ),
+            CombatPhase(
+                name=PhaseName.SHOOTING.value,
+                description="Fighters with ready markers can shoot at enemies.",
+                actions=["Shoot", "Aim"]
+            ),
+            CombatPhase(
+                name=PhaseName.CLOSE_COMBAT.value,
+                description="Resolve close combat attacks for engaged fighters.",
+                actions=["Melee Attack", "Fight Back"]
+            ),
+            CombatPhase(
+                name=PhaseName.END.value,
+                description="Resolve any lingering effects and check for bottle tests.",
+                actions=["Bottle Test", "Recovery Test", "Remove Ready Markers"]
+            )
+        ]
+
+    def advance_combat_phase(self) -> None:
+        # Advance to the next combat phase. If no phases remain, create a new combat round.
+        current_round = self.get_current_combat_round()
+        if current_round and current_round.phases:
+            removed_phase = current_round.phases.pop(0)
+            logging.debug(f"Advanced combat phase, removed: {removed_phase.name}")
+            if not current_round.phases:
+                self.create_new_combat_round()
+
+    def get_current_combat_round(self) -> Optional[CombatRound]:
+        # Retrieve the current combat round, if any.
+        if self.game_state.combat_rounds:
+            return self.game_state.combat_rounds[-1]
+        return None
+
+    def get_active_gang(self) -> Gang:
+        # Get the currently active gang.
+        return self.game_state.gangs[self.game_state.active_gang_index]
+
+    def get_active_fighter(self) -> Ganger:
+        # Get the currently active fighter within the active gang.
+        return self.get_active_gang().members[self.active_fighter_index]
+
+    def attack(self, attacker_name: str, target_name: str) -> str:
+        # Perform an attack from one fighter to another, determining hits and wounds.
+        attacker = self._get_fighter_by_name(attacker_name)
+        target = self._get_fighter_by_name(target_name)
+
+        if not attacker or not target:
+            logging.error(f"Invalid attacker ({attacker_name}) or target ({target_name}) name")
+            return "Invalid attacker or target name"
+
+        try:
+            # Roll to hit and to wound.
+            hit_roll = d20.roll("1d6").total
+            wound_roll = d20.roll("1d6").total
+        except Exception as e:
+            logging.error(f"Error during dice roll: {str(e)}")
+            return "Error during attack roll"
+
+        # Determine if the attack hits and wounds the target.
+        if hit_roll >= attacker.ballistic_skill:
+            if wound_roll >= target.toughness:
+                target.wounds -= 1
+                result = f"{attacker_name} successfully hit and wounded {target_name}"
+                if target.wounds <= 0:
+                    result += f". {target_name} is out of action!"
+            else:
+                result = f"{attacker_name} hit but failed to wound {target_name}"
+        else:
+            result = f"{attacker_name} missed {target_name}"
+
+        logging.info(result)
+        self.update_combat_round_summary(result)
+        return result
+
+    def update_combat_round_summary(self, summary: str) -> None:
+        # Update the summary for the current combat round with the provided event description.
+        current_round = self.get_current_combat_round()
+        if current_round:
+            current_round.summary += summary + "\n"
+
+    def _get_fighter_by_name(self, name: str) -> Optional[Ganger]:
+        # Retrieve a fighter by their name from any gang.
+        for gang in self.game_state.gangs:
+            for fighter in gang.members:
+                if fighter.name == name:
+                    return fighter
+        return None
+
+    def get_available_actions(self) -> List[str]:
+        # Get the list of available actions for the current combat phase.
+        current_phase = self.get_current_combat_phase()
+        if current_phase:
+            return current_phase.actions
+        return []
+
+    def get_current_combat_phase(self) -> Optional[CombatPhase]:
+        # Retrieve the current combat phase, if any.
+        current_round = self.get_current_combat_round()
+        if current_round and current_round.phases:
+            return current_round.phases[0]
+        return None
+
+    # Additional methods would follow similar improvements...

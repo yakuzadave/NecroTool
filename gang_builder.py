@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
-from models import Weapon, WeaponTrait, WeaponProfile, Equipment, SpecialRule, GangMember, ArmorModel
+from models import Weapon, WeaponTrait, WeaponProfile, Equipment, SpecialRule, Ganger, Armor
 
 class WeaponTraitInput(BaseModel):
     name: str
@@ -35,14 +35,13 @@ class SpecialRuleInput(BaseModel):
 
 class ArmorInput(BaseModel):
     name: str = Field(..., description="Name of the armor")
-    protection_value: int = Field(..., ge=0, le=6, description="Protection value of the armor, between 0 and 6")
+    armor_rating: int = Field(..., ge=0, le=6, description="Armor rating of the armor, between 0 and 6")
     locations: List[str] = Field(..., description="Body locations covered by the armor")
     special_rules: List[str] = Field(default_factory=list, description="Special rules associated with the armor")
 
-class GangMemberInput(BaseModel):
+class GangerInput(BaseModel):
     name: str = Field(..., description="Name of the gang member")
-    gang: str = Field(..., description="Gang to which this member belongs (e.g., Goliath, Escher, Cawdor)")
-    role: str = Field(..., description="Role in the gang (e.g., Leader, Champion, Ganger, Juve)")
+    gang_affiliation: str = Field(..., description="Gang to which this member belongs (e.g., Goliath, Escher, Cawdor)")
     movement: int = Field(..., ge=1, le=10, description="Movement characteristic")
     weapon_skill: int = Field(..., ge=2, le=6, description="Weapon Skill (WS) characteristic, between 2+ and 6+")
     ballistic_skill: int = Field(..., ge=2, le=6, description="Ballistic Skill (BS) characteristic, between 2+ and 6+")
@@ -53,38 +52,37 @@ class GangMemberInput(BaseModel):
     attacks: int = Field(..., ge=1, le=5, description="Number of attacks")
     leadership: int = Field(..., ge=2, le=10, description="Leadership characteristic, between 2 and 10")
     cool: int = Field(..., ge=2, le=10, description="Cool characteristic, between 2 and 10")
-    willpower: int = Field(..., ge=2, le=10, description="Willpower characteristic, between 2 and 10")
+    will: int = Field(..., ge=2, le=10, description="Will characteristic, between 2 and 10")
     intelligence: int = Field(..., ge=2, le=10, description="Intelligence characteristic, between 2 and 10")
     credits_value: int = Field(..., ge=0, description="Credits value assigned to this gang member for balancing purposes")
-    outlaw: bool = Field(False, description="Indicates if the gang member belongs to an outlaw gang")
     weapons: List[WeaponInput] = Field(..., min_items=1, description="List of weapons carried by the gang member")
     equipment: List[EquipmentInput] = Field(default_factory=list, description="List of equipment carried by the gang member")
     skills: List[str] = Field(default_factory=list, description="List of skills the gang member possesses (e.g., Nerves of Steel, Combat Master)")
     special_rules: List[SpecialRuleInput] = Field(default_factory=list, description="List of special rules that apply to the gang member")
     armor: Optional[ArmorInput] = Field(None, description="Armor worn by the gang member")
 
-    @validator('role')
-    def validate_role(cls, v):
-        valid_roles = ['Leader', 'Champion', 'Ganger', 'Juve']
-        if v.capitalize() not in valid_roles:
-            raise ValueError(f"Invalid role. Must be one of: {', '.join(valid_roles)}")
-        return v.capitalize()
+    @validator('gang_affiliation')
+    def validate_gang_affiliation(cls, v):
+        valid_gangs = ['Goliath', 'Escher', 'Cawdor', 'Orlock', 'Van Saar', 'Delaque']
+        if v not in valid_gangs:
+            raise ValueError(f"Invalid gang affiliation. Must be one of: {', '.join(valid_gangs)}")
+        return v
 
-def create_gang_member(input_data: dict) -> GangMember:
+def create_gang_member(input_data: dict) -> Ganger:
     """
-    Create a GangMember instance from input data, using Pydantic for validation.
+    Create a Ganger instance from input data, using Pydantic for validation.
 
     Args:
         input_data (dict): A dictionary containing the gang member data.
 
     Returns:
-        GangMember: A validated GangMember instance.
+        Ganger: A validated Ganger instance.
 
     Raises:
         ValueError: If the input data is invalid.
     """
     try:
-        validated_input = GangMemberInput(**input_data)
+        validated_input = GangerInput(**input_data)
         
         weapons = [
             Weapon(
@@ -101,9 +99,9 @@ def create_gang_member(input_data: dict) -> GangMember:
         ]
         equipment = [Equipment(**e.dict()) for e in validated_input.equipment]
         special_rules = [SpecialRule(**s.dict()) for s in validated_input.special_rules]
-        armor = ArmorModel(**validated_input.armor.dict()) if validated_input.armor else None
+        armor = Armor(**validated_input.armor.dict()) if validated_input.armor else None
 
-        return GangMember(
+        return Ganger(
             **validated_input.dict(exclude={'weapons', 'equipment', 'special_rules', 'armor'}),
             weapons=weapons,
             equipment=equipment,

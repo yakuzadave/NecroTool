@@ -1,26 +1,35 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+# armor_models.py
+from pydantic import BaseModel
+from typing import List, Optional
 
+# Represents any modifiers applied to armor, such as a save bonus or additional effects.
 class ArmorModifier(BaseModel):
-    modifier_type: str
-    value: int
-    description: Optional[str] = None
+    modifier_type: str  # Type of modifier (e.g., "Save", "Movement Penalty").
+    value: int  # Numerical value of the modifier.
+    description: Optional[str] = None  # Optional detailed description of the modifier.
 
+# Represents an armor piece with its attributes and possible modifiers.
 class Armor(BaseModel):
-    name: str
-    armor_rating: int
-    save_modifier: Optional[int] = None
-    armor_type: str
-    special_rules: Optional[List[str]] = None
-    modifiers: Optional[List[ArmorModifier]] = None
-    is_bulk: Optional[bool] = None
-    cost: Optional[int] = None
-    description: Optional[str] = None
+    name: str  # Name of the armor piece.
+    armor_rating: int  # The basic armor rating provided by this armor.
+    save_modifier: Optional[int] = None  # Modifier applied to the saving throw.
+    armor_type: str  # Type of armor (e.g., "Light", "Heavy").
+    special_rules: Optional[List[str]] = None  # List of special rules applied to the armor.
+    modifiers: Optional[List[ArmorModifier]] = None  # List of modifiers associated with the armor.
+    is_bulk: Optional[bool] = None  # Indicates if the armor is bulky and may have penalties.
+    cost: Optional[int] = None  # Credit cost of the armor.
+    description: Optional[str] = None  # Optional detailed description of the armor.
 
+# weapon_models.py
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+# Represents a specific trait associated with a weapon (e.g., Rapid Fire, Knockback).
 class WeaponTrait(BaseModel):
     name: str = Field(..., description="The name of the weapon trait (e.g., Rapid Fire, Knockback, Unwieldy).")
     description: Optional[str] = Field(None, description="A description of the trait and its effect on the weapon or ganger.")
 
+# Represents a firing mode or melee profile for a weapon.
 class WeaponProfile(BaseModel):
     range: str = Field(..., description="The range of the weapon, e.g., 'Short: 0-8', 'Long: 8-24'.")
     strength: int = Field(..., description="The strength value of the weapon.")
@@ -29,6 +38,7 @@ class WeaponProfile(BaseModel):
     ammo_roll: Optional[str] = Field(None, description="The ammo roll required to avoid running out of ammo, e.g., '4+'.")
     special_rules: Optional[List[str]] = Field(None, description="Any special rules associated with this profile.")
 
+# Represents a weapon, including its traits, profiles, and cost.
 class Weapon(BaseModel):
     name: str = Field(..., description="The name of the weapon, e.g., Lasgun, Bolt Pistol.")
     weapon_type: str = Field(..., description="The type of the weapon, e.g., Basic, Pistol, Heavy, Melee.")
@@ -39,30 +49,50 @@ class Weapon(BaseModel):
     is_unwieldy: Optional[bool] = Field(False, description="Indicates whether the weapon is unwieldy, adding penalties to movement or attack.")
     description: Optional[str] = Field(None, description="A detailed description of the weapon, including lore or fluff.")
 
-class Consumable(BaseModel):
-    name: str = Field(..., description="The name of the consumable item, e.g., Stimm-Slug Stash, Medipack.")
-    cost: Optional[int] = Field(None, description="The credit cost of the consumable item.")
-    rarity: Optional[str] = Field(None, description="The rarity level of the consumable, used to determine availability in trading post.")
-    uses: int = Field(..., ge=1, description="The number of uses the consumable item has.")
-    effect: str = Field(..., description="The effect or benefit provided by the consumable item.")
-    side_effects: Optional[str] = Field(None, description="Any negative side effects of using the consumable item.")
-    description: Optional[str] = Field(None, description="A detailed description of the consumable, including lore or fluff.")
+  # item_models.py
+  from pydantic import BaseModel, Field
+  from typing import List, Optional
+  
+  # Represents a consumable item that can be used during a battle or campaign.
+  class Consumable(BaseModel):
+      name: str = Field(..., description="The name of the consumable item, e.g., Stimm-Slug Stash, Medipack.")
+      cost: Optional[int] = Field(None, description="The credit cost of the consumable item.")
+      rarity: Optional[str] = Field(None, description="The rarity level of the consumable, used to determine availability in trading post.")
+      uses: int = Field(..., ge=1, description="The number of uses the consumable item has.")
+      effect: str = Field(..., description="The effect or benefit provided by the consumable item.")
+      side_effects: Optional[str] = Field(None, description="Any negative side effects of using the consumable item.")
+      description: Optional[str] = Field(None, description="A detailed description of the consumable, including lore or fluff.")
+  
+  # Represents an equipment item, which may have various effects on gameplay.
+  class Equipment(BaseModel):
+      name: str = Field(..., description="The name of the equipment, e.g., Grapnel Launcher, Photo-Visor.")
+      cost: Optional[int] = Field(None, description="The credit cost of the equipment item.")
+      rarity: Optional[str] = Field(None, description="The rarity level of the equipment, used to determine availability in trading post.")
+      weight: Optional[str] = Field(None, description="The weight category of the equipment, e.g., Light, Medium, Heavy.")
+      special_rules: Optional[List[str]] = Field(None, description="Special rules or abilities provided by the equipment.")
+      modifiers: Optional[List[str]] = Field(None, description="Stat modifiers provided by the equipment, e.g., +1 to Strength.")
+      is_restricted: Optional[bool] = Field(False, description="Indicates whether the equipment is restricted and requires special permission to use.")
+      description: Optional[str] = Field(None, description="A detailed description of the equipment, including lore or fluff.")
 
-class Equipment(BaseModel):
-    name: str = Field(..., description="The name of the equipment, e.g., Grapnel Launcher, Photo-Visor.")
-    cost: Optional[int] = Field(None, description="The credit cost of the equipment item.")
-    rarity: Optional[str] = Field(None, description="The rarity level of the equipment, used to determine availability in trading post.")
-    weight: Optional[str] = Field(None, description="The weight category of the equipment, e.g., Light, Medium, Heavy.")
-    special_rules: Optional[List[str]] = Field(None, description="Special rules or abilities provided by the equipment.")
-    modifiers: Optional[List[str]] = Field(None, description="Stat modifiers provided by the equipment, e.g., +1 to Strength.")
-    is_restricted: Optional[bool] = Field(False, description="Indicates whether the equipment is restricted and requires special permission to use.")
-    description: Optional[str] = Field(None, description="A detailed description of the equipment, including lore or fluff.")
+# rules_models.py
+from pydantic import BaseModel
+from typing import List
 
+# Represents a special rule that can apply to models or scenarios, detailing its effects.
 class SpecialRule(BaseModel):
-    name: str
-    description: str
-    effect: str
+    name: str  # Name of the special rule.
+    description: str  # Description of the rule.
+    effect: str  # Effect or impact of the rule.
 
+# gang_models.py
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from .armor_models import Armor
+from .weapon_models import Weapon
+from .item_models import Equipment, Consumable
+from .rules_models import SpecialRule
+
+# Represents a gang member (Ganger) including all its stats, equipment, and special rules.
 class Ganger(BaseModel):
     name: str = Field(..., description="Name of the gang member")
     gang_affiliation: str = Field(..., description="Gang to which this member belongs (e.g., Goliath, Escher, Cawdor)")
@@ -87,24 +117,36 @@ class Ganger(BaseModel):
     injuries: List[str] = Field(default_factory=list, description="List of permanent injuries sustained by the gang member")
     xp: int = Field(0, description="Experience points earned by the gang member")
 
+# Represents a gang and its associated attributes, including its members, credits, and special rules.
 class Gang(BaseModel):
-    name: str
-    members: List[Ganger]
-    credits: int = 1000
+    name: str  # Name of the gang.
+    members: List[Ganger]  # List of gang members.
+    credits: int = 1000  # Credits available to the gang for purchasing equipment, etc.
     special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the entire gang")
     victory_points: int = Field(0, description="Victory points earned by the gang")
 
+# battlefield_models.py
+from pydantic import BaseModel
+from typing import List
+
+# Represents a tile on the battlefield, with position and type.
 class Tile(BaseModel):
-    x: int
-    y: int
-    type: str  # 'open', 'cover', 'elevation'
-    elevation: int = 0
+    x: int  # X-coordinate of the tile.
+    y: int  # Y-coordinate of the tile.
+    type: str  # Type of the tile (e.g., 'open', 'cover', 'elevation').
+    elevation: int = 0  # Elevation level of the tile.
 
+# Represents the entire battlefield, composed of multiple tiles.
 class Battlefield(BaseModel):
-    width: int
-    height: int
-    tiles: List[Tile]
+    width: int  # Width of the battlefield.
+    height: int  # Height of the battlefield.
+    tiles: List[Tile]  # List of tiles representing the battlefield.
 
+# scenario_models.py
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+# Represents an objective in a scenario, with rewards and status.
 class ScenarioObjective(BaseModel):
     name: str = Field(..., description="The name of the objective, e.g., Capture the Flag, Defend the Territory.")
     description: Optional[str] = Field(None, description="A detailed description of the objective and how it impacts gameplay.")
@@ -112,15 +154,18 @@ class ScenarioObjective(BaseModel):
     completed: bool = Field(False, description="Indicates whether the objective has been completed.")
     points: int = Field(0, description="Victory points awarded for completing this objective.")
 
+# Represents a deployment zone within a scenario, where gangs start the game.
 class ScenarioDeploymentZone(BaseModel):
     name: str = Field(..., description="The name of the deployment zone, e.g., Zone A, Northern Sector.")
     description: Optional[str] = Field(None, description="A detailed description of the deployment zone.")
     starting_positions: Optional[str] = Field(None, description="Information about starting positions for each gang.")
 
+# Represents a special rule within a scenario, detailing its effect on gameplay.
 class ScenarioSpecialRule(BaseModel):
     name: str = Field(..., description="The name of the special rule, e.g., Toxic Fog, Reinforcements.")
     effect: Optional[str] = Field(None, description="A description of the effect the special rule has on the scenario.")
 
+# Represents an entire scenario, including objectives, deployment zones, and special rules.
 class Scenario(BaseModel):
     name: str = Field(..., description="The name of the scenario, e.g., Ambush, Turf War.")
     description: Optional[str] = Field(None, description="A detailed description of the scenario, including lore or fluff.")
@@ -131,22 +176,37 @@ class Scenario(BaseModel):
     duration: Optional[str] = Field(None, description="The expected duration of the scenario, e.g., '3-5 turns' or 'Until all objectives are completed'.")
     rewards: Optional[str] = Field(None, description="General rewards for winning the scenario, e.g., credits, territory, reputation.")
 
+# combat_models.py
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+# Represents a phase of combat, detailing actions that can be taken.
 class CombatPhase(BaseModel):
     name: str = Field(..., description="The name of the phase, e.g., Priority Phase, Movement Phase, Shooting Phase.")
     description: Optional[str] = Field(None, description="A detailed description of what happens during this phase.")
     actions: Optional[List[str]] = Field(None, description="List of actions that can be taken during this phase, e.g., Move, Shoot, Charge.")
 
+# Represents a combat round, including its phases and any special rules.
 class CombatRound(BaseModel):
     round_number: int = Field(..., ge=1, description="The number of the combat round, starting from 1.")
     phases: List[CombatPhase] = Field(..., description="List of phases that occur in this round of combat.")
     special_rules: Optional[List[str]] = Field(None, description="Special rules or events that are specific to this round.")
     summary: Optional[str] = Field(None, description="A summary of key events that took place during this round.")
 
+# game_state_models.py
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from .gang_models import Gang
+from .battlefield_models import Battlefield
+from .scenario_models import Scenario
+from .combat_models import CombatRound
+
+# Represents the state of the game, including gangs, battlefield, scenario, and combat rounds.
 class GameState(BaseModel):
-    gangs: List[Gang]
-    battlefield: Battlefield
-    current_turn: int = 1
-    active_gang_index: int = 0
+    gangs: List[Gang]  # List of gangs participating in the game.
+    battlefield: Battlefield  # Representation of the battlefield.
+    current_turn: int = 1  # Current turn number.
+    active_gang_index: int = 0  # Index of the currently active gang.
     scenario: Optional[Scenario] = Field(None, description="The current scenario being played")
     max_turns: int = Field(10, description="Maximum number of turns for the game")
     combat_rounds: List[CombatRound] = Field(default_factory=list, description="List of combat rounds in the game")
