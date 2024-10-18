@@ -10,10 +10,10 @@ class GameLogic:
         self.db = db
         self.game_state = self._initialize_game_state()
         self.active_fighter_index = 0
+        self.create_new_combat_round()  # Initialize the first combat round
         logging.info("GameLogic initialized")
 
     def _initialize_game_state(self) -> GameState:
-        # Create a basic game state with two gangs
         gangs = [
             Gang(name="Goliaths", members=[
                 Ganger(name="Crusher", gang_affiliation="Goliaths", role="Leader", movement=4, weapon_skill=3, ballistic_skill=4, strength=4, toughness=4, wounds=2, initiative=3, attacks=2, leadership=7, cool=7, will=7, intelligence=6,
@@ -38,6 +38,63 @@ class GameLogic:
         )
         return GameState(gangs=gangs, battlefield=battlefield, scenario=scenario)
 
+    def create_new_combat_round(self) -> None:
+        round_number = len(self.game_state.combat_rounds) + 1
+        phases = [
+            CombatPhase(
+                name=PhaseName.PRIORITY.value,
+                description="Determine which gang has priority for the round.",
+                actions=["Roll-off", "Assign Priority"]
+            ),
+            CombatPhase(
+                name=PhaseName.MOVEMENT.value,
+                description="Each fighter can move based on their movement characteristic.",
+                actions=["Move", "Charge", "Retreat"]
+            ),
+            CombatPhase(
+                name=PhaseName.SHOOTING.value,
+                description="Fighters with ready markers can shoot at enemies.",
+                actions=["Shoot", "Aim"]
+            ),
+            CombatPhase(
+                name=PhaseName.CLOSE_COMBAT.value,
+                description="Resolve close combat attacks for engaged fighters.",
+                actions=["Melee Attack", "Fight Back"]
+            ),
+            CombatPhase(
+                name=PhaseName.END.value,
+                description="Resolve any lingering effects and check for bottle tests.",
+                actions=["Bottle Test", "Recovery Test", "Remove Ready Markers"]
+            )
+        ]
+        new_round = CombatRound(round_number=round_number, phases=phases)
+        self.game_state.combat_rounds.append(new_round)
+        logging.info(f"Created new combat round: {round_number}")
+
+    def get_current_combat_round(self) -> Optional[CombatRound]:
+        if self.game_state.combat_rounds:
+            return self.game_state.combat_rounds[-1]
+        return None
+
+    def get_current_combat_phase(self) -> Optional[CombatPhase]:
+        current_round = self.get_current_combat_round()
+        if current_round and current_round.phases:
+            return current_round.phases[0]
+        return None
+
+    def advance_combat_phase(self) -> None:
+        current_round = self.get_current_combat_round()
+        if current_round:
+            if len(current_round.phases) > 1:
+                current_round.phases.pop(0)
+                logging.info(f"Advanced to next phase: {current_round.phases[0].name}")
+            else:
+                self.create_new_combat_round()
+                logging.info("Advanced to new combat round")
+        else:
+            self.create_new_combat_round()
+            logging.info("Created first combat round")
+
     def attack(self, attacker_name: str, target_name: str) -> str:
         attacker = self._get_fighter_by_name(attacker_name)
         target = self._get_fighter_by_name(target_name)
@@ -45,13 +102,11 @@ class GameLogic:
         if not attacker or not target:
             return "Invalid attacker or target name."
         
-        # Use the first weapon in the attacker's weapons list
         if not attacker.weapons:
             return f"{attacker.name} has no weapons to attack with."
         
         weapon = attacker.weapons[0]
         
-        # Simplified attack logic for testing
         hit_roll = d20.roll("1d6").total
         if hit_roll >= attacker.ballistic_skill:
             damage = self.apply_damage(target, weapon.profiles[0].damage)
@@ -92,5 +147,3 @@ class GameLogic:
         new_active_fighter = self.get_active_fighter()
         
         return f"Activation ended. Active gang: {new_active_gang.name}, Active fighter: {new_active_fighter.name}"
-
-    # Add other methods as needed...

@@ -32,15 +32,15 @@ def get_test_commands() -> List[str]:
         "end_activation",
         "advance_phase",
         "show_combat_round",
-        "move Smasher 2 3",
+        "move Crusher 2 3",
         "end_activation",
-        "move Shadow 1 2",
+        "move Venom 1 2",
         "end_activation",
         "advance_phase",
         "show_combat_round",
-        "attack Smasher Shadow",
+        "attack Crusher Venom",
         "end_activation",
-        "attack Shadow Smasher",
+        "attack Venom Crusher",
         "end_activation",
         "advance_phase",
         "show_combat_round",
@@ -64,9 +64,6 @@ def main() -> None:
 
     console.print("[bold green]Welcome to the Necromunda Simulation![/bold green]")
     console.print("Enter 'help' for a list of commands.")
-
-    # Initialize the first combat round
-    game_logic.create_new_combat_round()
 
     test_commands = get_test_commands()
 
