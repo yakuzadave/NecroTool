@@ -1,0 +1,323 @@
+~/workspace$ python main.py
+2024-10-18 18:19:23,438 - INFO - GameLogic initialized
+2024-10-18 18:19:23,438 - INFO - UserInterface initialized
+Welcome to the Necromunda Simulation!
+Enter 'help' for a list of commands.
+Traceback (most recent call last):
+  File "/home/runner/workspace/main.py", line 98, in <module>
+    main()
+  File "/home/runner/workspace/main.py", line 69, in main
+    game_logic.create_new_combat_round()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'create_new_combat_round'
+~/workspace$ ^C
+~/workspace$ python main.py
+2024-10-18 18:24:53,603 - INFO - Created new combat round: 1
+2024-10-18 18:24:53,603 - INFO - GameLogic initialized
+2024-10-18 18:24:53,603 - INFO - UserInterface initialized
+Welcome to the Necromunda Simulation!
+Enter 'help' for a list of commands.
+
+Executing command 1/27: help
+Processing command: help
+Available commands:
+  help - Show this help message
+  status - Show detailed status of all gang members
+  move <fighter_name> <x> <y> - Move the active fighter
+  attack <attacker_name> <target_name> - Attack with the active fighter
+  end_activation - End the current fighter's activation
+  save - Save the current game state
+  map - Show the battlefield map
+  objectives - Show current mission objectives
+  victory_points - Show current victory points
+  create_gang_member <gang_name> <member_data_json> - Create a custom gang 
+member
+  use_consumable <fighter_name> <consumable_name> - Use a consumable item
+  show_equipment <fighter_name> - Show equipment details for a fighter
+  show_scenario - Display information about the current scenario
+  check_objectives - Check and update scenario objectives
+  show_combat_round - Display information about the current combat round
+  advance_phase - Advance to the next combat phase
+  show_fighter <fighter_name> - Display detailed information about a specific 
+fighter
+  use_skill <fighter_name> <skill_name> - Use a skill or special ability of a 
+fighter
+  quit - Exit the game
+2024-10-18 18:24:53,611 - INFO - Command executed: help
+Command executed successfully.
+
+Executing command 2/27: status
+Processing command: status
+
+Goliaths Gang (Credits: 1000, Victory Points: 0)
+An unexpected error occurred: 'Ganger' object has no attribute 'willpower'
+2024-10-18 18:24:53,613 - ERROR - Unexpected error in process_command: 'Ganger' object has no attribute 'willpower'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 83, in show_status
+    self._display_gang_status(gang)
+  File "/home/runner/workspace/user_interface.py", line 98, in _display_gang_status
+    self._add_member_to_status_table(table, member, is_active)
+  File "/home/runner/workspace/user_interface.py", line 116, in _add_member_to_status_table
+    str(member.cool), str(member.willpower), str(member.intelligence),
+                          ^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/pydantic/main.py", line 856, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Ganger' object has no attribute 'willpower'
+2024-10-18 18:24:53,614 - INFO - Command executed: status
+Command executed successfully.
+
+Executing command 3/27: map
+Processing command: map
+An unexpected error occurred: 'GameLogic' object has no attribute 
+'get_battlefield_state'
+2024-10-18 18:24:53,616 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'get_battlefield_state'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 184, in show_battlefield
+    battlefield_state = self.game_logic.get_battlefield_state()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'get_battlefield_state'
+2024-10-18 18:24:53,616 - INFO - Command executed: map
+Command executed successfully.
+
+Executing command 4/27: objectives
+Processing command: objectives
+An unexpected error occurred: 'GameLogic' object has no attribute 
+'get_scenario'
+2024-10-18 18:24:53,617 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'get_scenario'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 255, in show_mission_objectives
+    scenario = self.game_logic.get_scenario()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'get_scenario'
+2024-10-18 18:24:53,618 - INFO - Command executed: objectives
+Command executed successfully.
+
+Executing command 5/27: show_combat_round
+Processing command: show_combat_round
+
+Current Combat Round: 1
+Current Phase: Priority Phase
+Description: Determine which gang has priority for the round.
+Available Actions: Roll-off, Assign Priority
+2024-10-18 18:24:53,619 - INFO - Command executed: show_combat_round
+Command executed successfully.
+
+Executing command 6/27: attack Crusher Venom
+Processing command: attack Crusher Venom
+Invalid attacker or target name.
+2024-10-18 18:24:53,620 - INFO - Command executed: attack Crusher Venom
+Command executed successfully.
+
+Executing command 7/27: end_activation
+Processing command: end_activation
+Activation ended. Active gang: Eschers, Active fighter: Venom
+2024-10-18 18:24:53,621 - INFO - Command executed: end_activation
+Command executed successfully.
+
+Executing command 8/27: attack Venom Crusher
+Processing command: attack Venom Crusher
+Invalid attacker or target name.
+2024-10-18 18:24:53,623 - INFO - Command executed: attack Venom Crusher
+Command executed successfully.
+
+Executing command 9/27: end_activation
+Processing command: end_activation
+Activation ended. Active gang: Goliaths, Active fighter: Crusher
+2024-10-18 18:24:53,624 - INFO - Command executed: end_activation
+Command executed successfully.
+
+Executing command 10/27: advance_phase
+Processing command: advance_phase
+2024-10-18 18:24:53,625 - INFO - Advanced to next phase: Movement Phase
+Advanced to the next combat phase.
+
+Current Combat Round: 1
+Current Phase: Movement Phase
+Description: Each fighter can move based on their movement characteristic.
+Available Actions: Move, Charge, Retreat
+2024-10-18 18:24:53,626 - INFO - Command executed: advance_phase
+Command executed successfully.
+
+Executing command 11/27: show_combat_round
+Processing command: show_combat_round
+
+Current Combat Round: 1
+Current Phase: Movement Phase
+Description: Each fighter can move based on their movement characteristic.
+Available Actions: Move, Charge, Retreat
+2024-10-18 18:24:53,628 - INFO - Command executed: show_combat_round
+Command executed successfully.
+
+Executing command 12/27: move Crusher 2 3
+Processing command: move Crusher 2 3
+An unexpected error occurred: 'GameLogic' object has no attribute 
+'move_fighter'
+2024-10-18 18:24:53,630 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'move_fighter'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 166, in _handle_move
+    result = self.game_logic.move_fighter(args[0], int(args[1]), int(args[2]))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'move_fighter'
+2024-10-18 18:24:53,630 - INFO - Command executed: move Crusher 2 3
+Command executed successfully.
+
+Executing command 13/27: end_activation
+Processing command: end_activation
+Activation ended. Active gang: Eschers, Active fighter: Venom
+2024-10-18 18:24:53,631 - INFO - Command executed: end_activation
+Command executed successfully.
+
+Executing command 14/27: move Venom 1 2
+Processing command: move Venom 1 2
+An unexpected error occurred: 'GameLogic' object has no attribute 
+'move_fighter'
+2024-10-18 18:24:53,632 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'move_fighter'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 166, in _handle_move
+    result = self.game_logic.move_fighter(args[0], int(args[1]), int(args[2]))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'move_fighter'
+2024-10-18 18:24:53,632 - INFO - Command executed: move Venom 1 2
+Command executed successfully.
+
+Executing command 15/27: end_activation
+Processing command: end_activation
+Activation ended. Active gang: Goliaths, Active fighter: Crusher
+2024-10-18 18:24:53,633 - INFO - Command executed: end_activation
+Command executed successfully.
+
+Executing command 16/27: advance_phase
+Processing command: advance_phase
+2024-10-18 18:24:53,634 - INFO - Advanced to next phase: Shooting Phase
+Advanced to the next combat phase.
+
+Current Combat Round: 1
+Current Phase: Shooting Phase
+Description: Fighters with ready markers can shoot at enemies.
+Available Actions: Shoot, Aim
+2024-10-18 18:24:53,635 - INFO - Command executed: advance_phase
+Command executed successfully.
+
+Executing command 17/27: show_combat_round
+Processing command: show_combat_round
+
+Current Combat Round: 1
+Current Phase: Shooting Phase
+Description: Fighters with ready markers can shoot at enemies.
+Available Actions: Shoot, Aim
+2024-10-18 18:24:53,636 - INFO - Command executed: show_combat_round
+Command executed successfully.
+
+Executing command 18/27: attack Crusher Venom
+Processing command: attack Crusher Venom
+Invalid attacker or target name.
+2024-10-18 18:24:53,638 - INFO - Command executed: attack Crusher Venom
+Command executed successfully.
+
+Executing command 19/27: end_activation
+Processing command: end_activation
+Activation ended. Active gang: Eschers, Active fighter: Venom
+2024-10-18 18:24:53,639 - INFO - Command executed: end_activation
+Command executed successfully.
+
+Executing command 20/27: attack Venom Crusher
+Processing command: attack Venom Crusher
+Invalid attacker or target name.
+2024-10-18 18:24:53,640 - INFO - Command executed: attack Venom Crusher
+Command executed successfully.
+
+Executing command 21/27: end_activation
+Processing command: end_activation
+Activation ended. Active gang: Goliaths, Active fighter: Crusher
+2024-10-18 18:24:53,642 - INFO - Command executed: end_activation
+Command executed successfully.
+
+Executing command 22/27: advance_phase
+Processing command: advance_phase
+2024-10-18 18:24:53,643 - INFO - Advanced to next phase: Close Combat Phase
+Advanced to the next combat phase.
+
+Current Combat Round: 1
+Current Phase: Close Combat Phase
+Description: Resolve close combat attacks for engaged fighters.
+Available Actions: Melee Attack, Fight Back
+2024-10-18 18:24:53,644 - INFO - Command executed: advance_phase
+Command executed successfully.
+
+Executing command 23/27: show_combat_round
+Processing command: show_combat_round
+
+Current Combat Round: 1
+Current Phase: Close Combat Phase
+Description: Resolve close combat attacks for engaged fighters.
+Available Actions: Melee Attack, Fight Back
+2024-10-18 18:24:53,646 - INFO - Command executed: show_combat_round
+Command executed successfully.
+
+Executing command 24/27: status
+Processing command: status
+
+Goliaths Gang (Credits: 1000, Victory Points: 0)
+An unexpected error occurred: 'Ganger' object has no attribute 'willpower'
+2024-10-18 18:24:53,648 - ERROR - Unexpected error in process_command: 'Ganger' object has no attribute 'willpower'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 83, in show_status
+    self._display_gang_status(gang)
+  File "/home/runner/workspace/user_interface.py", line 98, in _display_gang_status
+    self._add_member_to_status_table(table, member, is_active)
+  File "/home/runner/workspace/user_interface.py", line 116, in _add_member_to_status_table
+    str(member.cool), str(member.willpower), str(member.intelligence),
+                          ^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/pydantic/main.py", line 856, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Ganger' object has no attribute 'willpower'
+2024-10-18 18:24:53,649 - INFO - Command executed: status
+Command executed successfully.
+
+Executing command 25/27: objectives
+Processing command: objectives
+An unexpected error occurred: 'GameLogic' object has no attribute 
+'get_scenario'
+2024-10-18 18:24:53,650 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'get_scenario'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 255, in show_mission_objectives
+    scenario = self.game_logic.get_scenario()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'get_scenario'
+2024-10-18 18:24:53,650 - INFO - Command executed: objectives
+Command executed successfully.
+
+Executing command 26/27: victory_points
+Processing command: victory_points
+Current Victory Points:
+An unexpected error occurred: 'GameLogic' object has no attribute 
+'calculate_victory_points'
+2024-10-18 18:24:53,652 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'calculate_victory_points'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 44, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 191, in show_victory_points
+    results = self.game_logic.calculate_victory_points()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'calculate_victory_points'
+2024-10-18 18:24:53,652 - INFO - Command executed: victory_points
+Command executed successfully.
+
+Executing command 27/27: quit
+Exiting Necromunda Simulation. Goodbye!
+2024-10-18 18:24:53,653 - INFO - Necromunda Simulation ended.
+~/workspace$ 

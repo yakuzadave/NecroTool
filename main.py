@@ -5,7 +5,6 @@ from game_logic import GameLogic
 from database import initialize_database
 import d20
 from typing import List
-import json
 
 MAX_TEST_COMMANDS = 50
 

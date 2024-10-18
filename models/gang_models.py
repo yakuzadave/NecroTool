@@ -38,12 +38,4 @@ class Ganger(BaseModel):
     is_prone: bool = Field(False, description="Indicates if the fighter is prone")
     status: Optional[str] = Field(None, description="Current status of the fighter (e.g., 'Flesh Wound', 'Seriously Injured', 'Out of Action')")
 
-class Gang(BaseModel):
-    name: str
-    members: List[Ganger]
-    credits: int = 1000
-    special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the entire gang")
-    victory_points: int = Field(0, description="Victory points earned by the gang")
-    vehicles: List[Vehicle] = Field(default_factory=list, description="List of vehicles owned by the gang")
-    has_bottled: bool = Field(False, description="Indicates if the gang has bottled out")
-    bottle_check_value: int = Field(0, description="Value used for bottle checks")
+# ... [rest of the file remains unchanged]
