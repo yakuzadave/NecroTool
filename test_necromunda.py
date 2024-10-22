@@ -14,16 +14,42 @@ class TestNecromundaSimulation(unittest.TestCase):
         self.db = Database()
         self.game_logic = GameLogic(self.db)
 
-    # ... [previous test methods remain unchanged]
-
     def test_resolve_combat(self):
         print("Testing resolve_combat")
-        attacker = Ganger(name="TestAttacker", gang_affiliation="Goliaths", role="Ganger",
-                          movement=4, weapon_skill=3, ballistic_skill=4, strength=4, toughness=4,
-                          wounds=1, initiative=3, attacks=1, leadership=7, cool=6, willpower=6, intelligence=5)
-        defender = Ganger(name="TestDefender", gang_affiliation="Eschers", role="Ganger",
-                          movement=4, weapon_skill=3, ballistic_skill=4, strength=3, toughness=3,
-                          wounds=1, initiative=4, attacks=1, leadership=7, cool=7, willpower=7, intelligence=6)
+        attacker = Ganger(
+            name="TestAttacker",
+            gang_affiliation="Goliaths",
+            role="Ganger",
+            movement=4,
+            weapon_skill=3,
+            ballistic_skill=4,
+            strength=4,
+            toughness=4,
+            wounds=1,
+            initiative=3,
+            attacks=1,
+            leadership=7,
+            cool=6,
+            will=6,
+            intelligence=5
+        )
+        defender = Ganger(
+            name="TestDefender",
+            gang_affiliation="Eschers",
+            role="Ganger",
+            movement=4,
+            weapon_skill=3,
+            ballistic_skill=4,
+            strength=3,
+            toughness=3,
+            wounds=1,
+            initiative=4,
+            attacks=1,
+            leadership=7,
+            cool=7,
+            will=7,
+            intelligence=6
+        )
         
         # Mock the dice rolls to ensure a hit and wound
         self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 6})()

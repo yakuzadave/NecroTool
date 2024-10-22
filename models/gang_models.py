@@ -20,7 +20,7 @@ class Ganger(BaseModel):
     attacks: int = Field(..., description="Number of attacks")
     leadership: int = Field(..., ge=2, le=10, description="Leadership characteristic, between 2 and 10")
     cool: int = Field(..., ge=2, le=10, description="Cool characteristic, between 2 and 10")
-    willpower: int = Field(..., ge=2, le=10, description="Willpower characteristic, between 2 and 10")
+    will: int = Field(..., ge=2, le=10, description="Will characteristic, between 2 and 10")
     intelligence: int = Field(..., ge=2, le=10, description="Intelligence characteristic, between 2 and 10")
     equipment: Optional[List[Equipment]] = Field(default_factory=list, description="List of equipment carried by the gang member")
     weapons: Optional[List[Weapon]] = Field(default_factory=list, description="List of weapons carried by the gang member")
