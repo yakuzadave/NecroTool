@@ -5,6 +5,7 @@ from game_logic import GameLogic
 from database import initialize_database
 import d20
 from typing import List
+from models import Scenario, ScenarioObjective, ScenarioDeploymentZone, ScenarioSpecialRule
 
 MAX_TEST_COMMANDS = 50
 
@@ -49,6 +50,26 @@ def get_test_commands() -> List[str]:
         "quit"
     ]
 
+def create_sample_scenario() -> Scenario:
+    return Scenario(
+        name="Turf War",
+        description="Two gangs fight for control of a valuable territory.",
+        objectives=[
+            ScenarioObjective(name="Control Central Zone", description="Have more fighters than the enemy in the central 4x4 area at the end of the game.", points=3),
+            ScenarioObjective(name="Eliminate Enemy Leader", description="Take the enemy gang's leader out of action.", points=2)
+        ],
+        deployment_zones=[
+            ScenarioDeploymentZone(name="North Zone", description="Deploy within 6\" of the north table edge."),
+            ScenarioDeploymentZone(name="South Zone", description="Deploy within 6\" of the south table edge.")
+        ],
+        special_rules=[
+            ScenarioSpecialRule(name="Hazardous Terrain", effect="Fighters moving through the central zone must pass an Initiative check or become Pinned.")
+        ],
+        max_gangs=2,
+        duration="6 turns",
+        rewards="The winning gang gains control of the territory, earning 100 credits per post-battle sequence."
+    )
+
 def main() -> None:
     """
     Main function to run the Necromunda Simulation.
@@ -59,6 +80,7 @@ def main() -> None:
     console = Console()
     db = initialize_database()
     game_logic = GameLogic(db)
+    game_logic.game_state.scenario = create_sample_scenario()
     ui = UserInterface(console, game_logic)
 
     console.print("[bold green]Welcome to the Necromunda Simulation![/bold green]")

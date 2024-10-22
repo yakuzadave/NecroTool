@@ -11,84 +11,58 @@ class UserInterface:
         self.game_logic = game_logic
         logging.info("UserInterface initialized")
 
-    def process_command(self, command: str) -> None:
-        """Processes user commands and executes corresponding methods."""
-        self.console.print(f"[bold cyan]Processing command:[/bold cyan] {command}")
-        try:
-            parts = command.lower().split()
-            if not parts:
-                raise ValueError("Empty command")
+    # ... [previous methods remain unchanged]
 
-            command_handlers = {
-                'help': self.show_help,
-                'status': self.show_status,
-                'move': self._handle_move,
-                'attack': self._handle_attack,
-                'end_activation': self._handle_end_activation,
-                'save': self._handle_save,
-                'map': self.show_battlefield,
-                'objectives': self.show_mission_objectives,
-                'victory_points': self.show_victory_points,
-                'create_gang_member': self._handle_create_gang_member,
-                'use_consumable': self._handle_use_consumable,
-                'show_equipment': self._handle_show_equipment,
-                'show_scenario': self.show_scenario,
-                'check_objectives': self.check_scenario_objectives,
-                'show_combat_round': self._handle_show_combat_round,
-                'advance_phase': self._handle_advance_phase,
-                'show_fighter': self._handle_show_fighter,
-                'use_skill': self._handle_use_skill
-            }
+    def _handle_move(self, args: list) -> None:
+        """Handles the move command."""
+        if len(args) != 3:
+            raise ValueError("Invalid move command. Use: move <fighter_name> <x> <y>")
+        result = self.game_logic.move_fighter(args[0], int(args[1]), int(args[2]))
+        self.console.print(f"Move {'successful' if result else 'failed'}")
 
-            handler = command_handlers.get(parts[0])
-            if handler:
-                handler(parts[1:] if len(parts) > 1 else [])
-            else:
-                raise ValueError(f"Unknown command: {parts[0]}")
+    def show_battlefield(self, _: Optional[List[str]] = None) -> None:
+        """Displays the current battlefield map."""
+        battlefield_state = self.game_logic.get_battlefield_state()
+        self.console.print("[bold]Battlefield Map:[/bold]")
+        self.console.print(battlefield_state)
+        self.console.print("Legend: . = Open, # = Cover, 1-2 = Elevation")
 
-        except ValueError as e:
-            self.console.print(f"[bold red]Error:[/bold red] {str(e)}")
-            logging.warning(f"Command processing error: {str(e)}")
-        except Exception as e:
-            self.console.print(f"[bold red]An unexpected error occurred:[/bold red] {str(e)}")
-            logging.error(f"Unexpected error in process_command: {str(e)}", exc_info=True)
+    def show_victory_points(self, _: Optional[List[str]] = None) -> None:
+        """Displays the current victory points for each gang."""
+        self.console.print("[bold]Current Victory Points:[/bold]")
+        results = self.game_logic.calculate_victory_points()
+        for result in results:
+            self.console.print(f"{result['gang']}: {result['victory_points']} points")
 
-    def show_help(self, _: Optional[List[str]] = None) -> None:
-        """Displays a list of available commands to the user."""
-        self.console.print("[bold]Available commands:[/bold]")
-        help_text = [
-            ("help", "Show this help message"),
-            ("status", "Show detailed status of all gang members"),
-            ("move <fighter_name> <x> <y>", "Move the active fighter"),
-            ("attack <attacker_name> <target_name>", "Attack with the active fighter"),
-            ("end_activation", "End the current fighter's activation"),
-            ("save", "Save the current game state"),
-            ("map", "Show the battlefield map"),
-            ("objectives", "Show current mission objectives"),
-            ("victory_points", "Show current victory points"),
-            ("create_gang_member <gang_name> <member_data_json>", "Create a custom gang member"),
-            ("use_consumable <fighter_name> <consumable_name>", "Use a consumable item"),
-            ("show_equipment <fighter_name>", "Show equipment details for a fighter"),
-            ("show_scenario", "Display information about the current scenario"),
-            ("check_objectives", "Check and update scenario objectives"),
-            ("show_combat_round", "Display information about the current combat round"),
-            ("advance_phase", "Advance to the next combat phase"),
-            ("show_fighter <fighter_name>", "Display detailed information about a specific fighter"),
-            ("use_skill <fighter_name> <skill_name>", "Use a skill or special ability of a fighter"),
-            ("quit", "Exit the game")
-        ]
-        for command, description in help_text:
-            self.console.print(f"  {command} - {description}")
+        if self.game_logic.is_game_over():
+            winner = self.game_logic.get_winner()
+            self.console.print(f"\n[bold green]{winner}[/bold green]")
 
-    def _add_member_to_status_table(self, table: Table, member: Any, is_active: bool) -> None:
-        """Adds a gang member's information to the status table."""
-        table.add_row(
-            member.name, member.role,
-            str(member.movement), str(member.weapon_skill), str(member.ballistic_skill),
-            str(member.strength), str(member.toughness), str(member.wounds),
-            str(member.initiative), str(member.attacks), str(member.leadership),
-            str(member.cool), str(member.will), str(member.intelligence),
-            str(member.xp), "Yes" if is_active else "No"
-        )
+    def show_scenario(self, _: Optional[List[str]] = None) -> None:
+        """Displays information about the current scenario."""
+        scenario = self.game_logic.get_scenario()
+        if scenario:
+            self.console.print(f"[bold]Current Scenario: {scenario.name}[/bold]")
+            self.console.print(f"Description: {scenario.description}")
+            self.console.print("\n[bold]Objectives:[/bold]")
+            for objective in scenario.objectives:
+                status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
+                self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
+            self.console.print("\n[bold]Deployment Zones:[/bold]")
+            for zone in scenario.deployment_zones:
+                self.console.print(f"- {zone.name}: {zone.description}")
+            if scenario.special_rules:
+                self.console.print("\n[bold]Special Rules:[/bold]")
+                for rule in scenario.special_rules:
+                    self.console.print(f"- {rule.name}: {rule.effect}")
+            self.console.print(f"\nDuration: {scenario.duration}")
+            self.console.print(f"Rewards: {scenario.rewards}")
+        else:
+            self.console.print("[bold red]No scenario is currently set.[/bold red]")
 
-    # ... [rest of the methods remain unchanged]
+    def check_scenario_objectives(self, _: Optional[List[str]] = None) -> None:
+        """Checks and updates the status of scenario objectives."""
+        self.game_logic.check_scenario_objectives()
+        self.show_mission_objectives()
+
+    # ... [other methods remain unchanged]

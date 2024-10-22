@@ -1,6 +1,7 @@
 import json
 from tinydb import TinyDB, Query
 from typing import Optional, Dict
+import contextlib
 
 DB_FILE_PATH = 'data/game_data.json'
 
@@ -9,7 +10,18 @@ class Database:
 
     def __init__(self):
         """Initialize the Database instance with a TinyDB connection."""
-        self.db = TinyDB(DB_FILE_PATH)
+        self.db = None
+
+    @contextlib.contextmanager
+    def get_connection(self):
+        """Get a database connection that will be automatically closed."""
+        try:
+            self.db = TinyDB(DB_FILE_PATH)
+            yield self
+        finally:
+            if self.db:
+                self.db.close()
+                self.db = None
 
     def save_game_state(self, game_state: Dict) -> None:
         """

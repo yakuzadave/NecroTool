@@ -20,7 +20,7 @@ class Ganger(BaseModel):
     attacks: int = Field(..., description="Number of attacks")
     leadership: int = Field(..., ge=2, le=10, description="Leadership characteristic, between 2 and 10")
     cool: int = Field(..., ge=2, le=10, description="Cool characteristic, between 2 and 10")
-    will: int = Field(..., ge=2, le=10, description="Will characteristic, between 2 and 10")
+    willpower: int = Field(..., ge=2, le=10, description="Willpower characteristic, between 2 and 10")
     intelligence: int = Field(..., ge=2, le=10, description="Intelligence characteristic, between 2 and 10")
     equipment: Optional[List[Equipment]] = Field(default_factory=list, description="List of equipment carried by the gang member")
     weapons: Optional[List[Weapon]] = Field(default_factory=list, description="List of weapons carried by the gang member")
@@ -38,4 +38,10 @@ class Ganger(BaseModel):
     is_prone: bool = Field(False, description="Indicates if the fighter is prone")
     status: Optional[str] = Field(None, description="Current status of the fighter (e.g., 'Flesh Wound', 'Seriously Injured', 'Out of Action')")
 
-# ... [rest of the file remains unchanged]
+class Gang(BaseModel):
+    name: str
+    members: List[Ganger]
+    credits: int = 1000
+    special_rules: List[SpecialRule] = Field(default_factory=list, description="List of special rules that apply to the entire gang")
+    victory_points: int = Field(0, description="Victory points earned by the gang")
+    vehicles: Optional[List[Vehicle]] = Field(default_factory=list, description="List of vehicles owned by the gang")
