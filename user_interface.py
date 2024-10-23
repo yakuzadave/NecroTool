@@ -21,20 +21,20 @@ class UserInterface:
                 raise ValueError("Empty command")
 
             command_handlers = {
-                'help': self._show_help,
-                'status': self._show_status,
+                'help': self.show_help,
+                'status': self.show_status,
                 'move': self._handle_move,
                 'attack': self._handle_attack,
                 'end_activation': self._handle_end_activation,
                 'save': self._handle_save,
-                'map': self._show_battlefield,
-                'objectives': self._show_mission_objectives,
-                'victory_points': self._show_victory_points,
+                'map': self.show_battlefield,
+                'objectives': self.show_mission_objectives,
+                'victory_points': self.show_victory_points,
                 'create_gang_member': self._handle_create_gang_member,
                 'use_consumable': self._handle_use_consumable,
                 'show_equipment': self._handle_show_equipment,
-                'show_scenario': self._show_scenario,
-                'check_objectives': self._check_scenario_objectives,
+                'show_scenario': self.show_scenario,
+                'check_objectives': self.check_scenario_objectives,
                 'show_combat_round': self._handle_show_combat_round,
                 'advance_phase': self._handle_advance_phase,
                 'show_fighter': self._handle_show_fighter,
@@ -54,7 +54,7 @@ class UserInterface:
             self.console.print(f"[bold red]An unexpected error occurred:[/bold red] {str(e)}")
             logging.error(f"Unexpected error in process_command: {str(e)}", exc_info=True)
 
-    def _show_help(self, _: Optional[List[str]] = None) -> None:
+    def show_help(self, _: Optional[List[str]] = None) -> None:
         """Display list of available commands."""
         self.console.print("[bold]Available commands:[/bold]")
         help_text = [
@@ -81,7 +81,7 @@ class UserInterface:
         for command, description in help_text:
             self.console.print(f"  {command} - {description}")
 
-    def _show_status(self, _: Optional[List[str]] = None) -> None:
+    def show_status(self, _: Optional[List[str]] = None) -> None:
         """Display current status of all gang members."""
         try:
             for gang in self.game_logic.game_state.gangs:
@@ -130,14 +130,7 @@ class UserInterface:
 
     def _display_member_details(self, gang: Any) -> None:
         """Display detailed information for each member of a gang."""
-        if isinstance(gang, dict) and "members" in gang:
-            members = gang["members"]
-        elif hasattr(gang, 'members'):
-            members = gang.members
-        else:
-            members = [gang]
-
-        for member in members:
+        for member in gang.members:
             self.console.print(f"\n[bold]{member.name}[/bold]")
             if member.weapons:
                 self.console.print("  Weapons:")
@@ -164,173 +157,86 @@ class UserInterface:
         """Handle the move command."""
         if len(args) != 3:
             raise ValueError("Invalid move command. Use: move <fighter_name> <x> <y>")
-        try:
-            result = self.game_logic.move_fighter(args[0], int(args[1]), int(args[2]))
-            self.console.print(f"Move {'successful' if result else 'failed'}")
-        except Exception as e:
-            self.console.print(f"[bold red]Error moving fighter:[/bold red] {str(e)}")
-            logging.error(f"Error in move_fighter: {str(e)}", exc_info=True)
+        result = self.game_logic.move_fighter(args[0], int(args[1]), int(args[2]))
+        self.console.print(f"Move {'successful' if result else 'failed'}")
 
     def _handle_attack(self, args: list) -> None:
         """Handle the attack command."""
         if len(args) != 2:
             raise ValueError("Invalid attack command. Use: attack <attacker_name> <target_name>")
-        try:
-            result = self.game_logic.attack(args[0], args[1])
-            self.console.print(result)
-        except Exception as e:
-            self.console.print(f"[bold red]Error in attack:[/bold red] {str(e)}")
-            logging.error(f"Error in attack: {str(e)}", exc_info=True)
+        result = self.game_logic.attack(args[0], args[1])
+        self.console.print(result)
 
     def _handle_end_activation(self, _: list) -> None:
         """Handle ending the current fighter's activation."""
-        try:
-            result = self.game_logic.end_fighter_activation()
-            self.console.print(result)
-        except Exception as e:
-            self.console.print(f"[bold red]Error ending activation:[/bold red] {str(e)}")
-            logging.error(f"Error in end_fighter_activation: {str(e)}", exc_info=True)
+        result = self.game_logic.end_fighter_activation()
+        self.console.print(result)
 
     def _handle_save(self, _: list) -> None:
         """Handle saving the game state."""
-        try:
-            with self.game_logic.db.get_connection() as db:
-                db.save_game_state(self.game_logic.game_state.dict())
-            self.console.print("Game state saved.")
-        except Exception as e:
-            self.console.print(f"[bold red]Error saving game state:[/bold red] {str(e)}")
-            logging.error(f"Error in save_game_state: {str(e)}", exc_info=True)
+        with self.game_logic.db.get_connection() as db:
+            db.save_game_state(self.game_logic.game_state.dict())
+        self.console.print("Game state saved.")
 
-    def _show_battlefield(self, _: Optional[List[str]] = None) -> None:
+    def show_battlefield(self, _: Optional[List[str]] = None) -> None:
         """Display the current battlefield map."""
-        try:
-            battlefield_state = self.game_logic.get_battlefield_state()
-            self.console.print("[bold]Battlefield Map:[/bold]")
-            self.console.print(battlefield_state)
-            self.console.print("Legend: . = Open, # = Cover, 1-2 = Elevation")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying battlefield:[/bold red] {str(e)}")
-            logging.error(f"Error in show_battlefield: {str(e)}", exc_info=True)
+        battlefield_state = self.game_logic.get_battlefield_state()
+        self.console.print("[bold]Battlefield Map:[/bold]")
+        self.console.print(battlefield_state)
+        self.console.print("Legend: . = Open, # = Cover, 1-2 = Elevation")
 
-    def _show_mission_objectives(self, _: Optional[List[str]] = None) -> None:
-        """Display current mission objectives and their status."""
-        try:
-            scenario = self.game_logic.get_scenario()
-            if scenario:
-                self.console.print("[bold]Mission Objectives:[/bold]")
-                for objective in scenario.objectives:
-                    status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
-                    self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
-            else:
-                self.console.print("[bold red]No scenario is currently set.[/bold red]")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying mission objectives:[/bold red] {str(e)}")
-            logging.error(f"Error in show_mission_objectives: {str(e)}", exc_info=True)
+    def show_mission_objectives(self, _: Optional[List[str]] = None) -> None:
+        """Display current mission objectives."""
+        scenario = self.game_logic.get_scenario()
+        if scenario:
+            self.console.print("[bold]Mission Objectives:[/bold]")
+            for objective in scenario.objectives:
+                status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
+                self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
+        else:
+            self.console.print("[bold red]No scenario is currently set.[/bold red]")
 
-    def _show_victory_points(self, _: Optional[List[str]] = None) -> None:
-        """Display current victory points for each gang."""
-        try:
-            self.console.print("[bold]Current Victory Points:[/bold]")
-            for gang in self.game_logic.game_state.gangs:
-                self.console.print(f"{gang.name}: {gang.victory_points} points")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying victory points:[/bold red] {str(e)}")
-            logging.error(f"Error in show_victory_points: {str(e)}", exc_info=True)
+    def show_victory_points(self, _: Optional[List[str]] = None) -> None:
+        """Display current victory points."""
+        self.console.print("[bold]Current Victory Points:[/bold]")
+        results = self.game_logic.calculate_victory_points()
+        for result in results:
+            self.console.print(f"{result['gang']}: {result['victory_points']} points")
 
-    def _show_scenario(self, _: Optional[List[str]] = None) -> None:
+    def show_scenario(self, _: Optional[List[str]] = None) -> None:
         """Display information about the current scenario."""
-        try:
-            scenario = self.game_logic.get_scenario()
-            if scenario:
-                self.console.print(f"[bold]Current Scenario: {scenario.name}[/bold]")
-                self.console.print(f"Description: {scenario.description}")
-                self.console.print("\n[bold]Objectives:[/bold]")
-                for objective in scenario.objectives:
-                    status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
-                    self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
-                self.console.print("\n[bold]Deployment Zones:[/bold]")
-                for zone in scenario.deployment_zones:
-                    self.console.print(f"- {zone.name}: {zone.description}")
-                if scenario.special_rules:
-                    self.console.print("\n[bold]Special Rules:[/bold]")
-                    for rule in scenario.special_rules:
-                        self.console.print(f"- {rule.name}: {rule.effect}")
-                self.console.print(f"\nDuration: {scenario.duration}")
-                self.console.print(f"Rewards: {scenario.rewards}")
-            else:
-                self.console.print("[bold red]No scenario is currently set.[/bold red]")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying scenario:[/bold red] {str(e)}")
-            logging.error(f"Error in show_scenario: {str(e)}", exc_info=True)
+        scenario = self.game_logic.get_scenario()
+        if scenario:
+            self.console.print(f"[bold]Current Scenario: {scenario.name}[/bold]")
+            self.console.print(f"Description: {scenario.description}")
+            self.console.print("\n[bold]Objectives:[/bold]")
+            for objective in scenario.objectives:
+                status = "[green]Completed[/green]" if objective.completed else "[yellow]In Progress[/yellow]"
+                self.console.print(f"- {objective.name} ({objective.points} points): {objective.description} - {status}")
+            self.console.print("\n[bold]Deployment Zones:[/bold]")
+            for zone in scenario.deployment_zones:
+                self.console.print(f"- {zone.name}: {zone.description}")
+            if scenario.special_rules:
+                self.console.print("\n[bold]Special Rules:[/bold]")
+                for rule in scenario.special_rules:
+                    self.console.print(f"- {rule.name}: {rule.effect}")
+            self.console.print(f"\nDuration: {scenario.duration}")
+            self.console.print(f"Rewards: {scenario.rewards}")
+        else:
+            self.console.print("[bold red]No scenario is currently set.[/bold red]")
 
-    def _check_scenario_objectives(self, _: Optional[List[str]] = None) -> None:
+    def check_scenario_objectives(self, _: Optional[List[str]] = None) -> None:
         """Check and update scenario objectives."""
-        try:
-            self.game_logic.check_scenario_objectives()
-            self._show_mission_objectives(None)
-        except Exception as e:
-            self.console.print(f"[bold red]Error checking scenario objectives:[/bold red] {str(e)}")
-            logging.error(f"Error in check_scenario_objectives: {str(e)}", exc_info=True)
-
-    def _handle_show_combat_round(self, _: list) -> None:
-        """Handle displaying the current combat round."""
-        try:
-            self._display_combat_round_info()
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying combat round:[/bold red] {str(e)}")
-            logging.error(f"Error in show_combat_round: {str(e)}", exc_info=True)
-
-    def _handle_advance_phase(self, _: list) -> None:
-        """Handle advancing to the next combat phase."""
-        try:
-            self.game_logic.advance_combat_phase()
-            self.console.print("Advanced to the next combat phase.")
-            self._display_combat_round_info()
-        except Exception as e:
-            self.console.print(f"[bold red]Error advancing phase:[/bold red] {str(e)}")
-            logging.error(f"Error in advance_phase: {str(e)}", exc_info=True)
-
-    def _handle_show_fighter(self, args: list) -> None:
-        """Handle displaying detailed information about a specific fighter."""
-        if len(args) != 1:
-            raise ValueError("Invalid show_fighter command. Use: show_fighter <fighter_name>")
-        try:
-            fighter_name = args[0]
-            fighter = self.game_logic._get_fighter_by_name(fighter_name)
-            if fighter:
-                self.console.print(f"[bold]{fighter.name}[/bold]")
-                self._display_member_details({"members": [fighter]})
-            else:
-                self.console.print(f"Fighter {fighter_name} not found.")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying fighter:[/bold red] {str(e)}")
-            logging.error(f"Error in show_fighter: {str(e)}", exc_info=True)
-
-    def _handle_use_skill(self, args: list) -> None:
-        """Handle using a skill or special ability of a fighter."""
-        if len(args) != 2:
-            raise ValueError("Invalid use_skill command. Use: use_skill <fighter_name> <skill_name>")
-        try:
-            fighter_name, skill_name = args
-            fighter = self.game_logic._get_fighter_by_name(fighter_name)
-            if not fighter:
-                raise ValueError(f"Fighter '{fighter_name}' not found")
-            
-            if skill_name in fighter.skills:
-                self.console.print(f"{fighter.name} used skill: {skill_name}")
-            else:
-                raise ValueError(f"Skill '{skill_name}' not found for fighter {fighter.name}")
-        except Exception as e:
-            self.console.print(f"[bold red]Error using skill:[/bold red] {str(e)}")
-            logging.error(f"Error in use_skill: {str(e)}", exc_info=True)
+        self.game_logic.check_scenario_objectives()
+        self.show_mission_objectives()
 
     def _handle_create_gang_member(self, args: list) -> None:
         """Handle creating a custom gang member."""
         if len(args) < 2:
             raise ValueError("Invalid create_gang_member command. Use: create_gang_member <gang_name> <member_data_json>")
+        gang_name = args[0]
+        member_data_json = " ".join(args[1:])
         try:
-            gang_name = args[0]
-            member_data_json = " ".join(args[1:])
             member_data = json.loads(member_data_json)
             for gang in self.game_logic.game_state.gangs:
                 if gang.name.lower() == gang_name.lower():
@@ -342,76 +248,97 @@ class UserInterface:
             raise ValueError(f"Gang '{gang_name}' not found")
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON format for member data")
-        except Exception as e:
-            self.console.print(f"[bold red]Error creating gang member:[/bold red] {str(e)}")
-            logging.error(f"Error in create_gang_member: {str(e)}", exc_info=True)
 
     def _handle_use_consumable(self, args: list) -> None:
         """Handle using a consumable item."""
         if len(args) != 2:
             raise ValueError("Invalid use_consumable command. Use: use_consumable <fighter_name> <consumable_name>")
-        try:
-            fighter_name, consumable_name = args
-            fighter = self.game_logic._get_fighter_by_name(fighter_name)
-            if not fighter:
-                raise ValueError(f"Fighter '{fighter_name}' not found")
+        fighter_name, consumable_name = args
+        fighter = self.game_logic._get_fighter_by_name(fighter_name)
+        if not fighter:
+            raise ValueError(f"Fighter '{fighter_name}' not found")
+        
+        if not fighter.consumables:
+            raise ValueError(f"Fighter {fighter_name} has no consumables")
             
-            if not fighter.consumables:
-                raise ValueError(f"Fighter {fighter_name} has no consumables")
-                
-            for consumable in fighter.consumables:
-                if consumable.name.lower() == consumable_name.lower():
-                    if consumable.uses > 0:
-                        consumable.uses -= 1
-                        self.console.print(f"{fighter.name} used {consumable.name}: {consumable.effect}")
-                        if consumable.side_effects:
-                            self.console.print(f"Side effects: {consumable.side_effects}")
-                        return
-                    else:
-                        raise ValueError(f"No uses remaining for {consumable.name}")
-            raise ValueError(f"Consumable '{consumable_name}' not found")
-        except Exception as e:
-            self.console.print(f"[bold red]Error using consumable:[/bold red] {str(e)}")
-            logging.error(f"Error in use_consumable: {str(e)}", exc_info=True)
+        for consumable in fighter.consumables:
+            if consumable.name.lower() == consumable_name.lower():
+                if consumable.uses > 0:
+                    consumable.uses -= 1
+                    self.console.print(f"{fighter.name} used {consumable.name}: {consumable.effect}")
+                    if consumable.side_effects:
+                        self.console.print(f"Side effects: {consumable.side_effects}")
+                    return
+                else:
+                    raise ValueError(f"No uses remaining for {consumable.name}")
+        raise ValueError(f"Consumable '{consumable_name}' not found")
 
     def _handle_show_equipment(self, args: list) -> None:
         """Handle displaying equipment details for a fighter."""
         if len(args) != 1:
             raise ValueError("Invalid show_equipment command. Use: show_equipment <fighter_name>")
-        try:
-            fighter_name = args[0]
-            fighter = self.game_logic._get_fighter_by_name(fighter_name)
-            if fighter:
-                self.console.print(f"[bold]{fighter.name}'s Equipment:[/bold]")
-                if fighter.equipment:
-                    for equipment in fighter.equipment:
-                        self.console.print(f"  - {equipment.name}: {equipment.description}")
-                        if equipment.special_rules:
-                            self.console.print(f"    Special Rules: {', '.join(equipment.special_rules)}")
-                        if equipment.modifiers:
-                            self.console.print(f"    Modifiers: {', '.join(equipment.modifiers)}")
-            else:
-                self.console.print(f"Fighter {fighter_name} not found.")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying equipment:[/bold red] {str(e)}")
-            logging.error(f"Error in show_equipment: {str(e)}", exc_info=True)
+        fighter_name = args[0]
+        fighter = self.game_logic._get_fighter_by_name(fighter_name)
+        if fighter:
+            self.console.print(f"[bold]{fighter.name}'s Equipment:[/bold]")
+            if fighter.equipment:
+                for equipment in fighter.equipment:
+                    self.console.print(f"  - {equipment.name}: {equipment.description}")
+                    if equipment.special_rules:
+                        self.console.print(f"    Special Rules: {', '.join(equipment.special_rules)}")
+                    if equipment.modifiers:
+                        self.console.print(f"    Modifiers: {', '.join(equipment.modifiers)}")
+        else:
+            self.console.print(f"Fighter {fighter_name} not found.")
+
+    def _handle_show_combat_round(self, _: list) -> None:
+        """Handle displaying the current combat round."""
+        self._display_combat_round_info()
+
+    def _handle_advance_phase(self, _: list) -> None:
+        """Handle advancing to the next combat phase."""
+        self.game_logic.advance_combat_phase()
+        self.console.print("Advanced to the next combat phase.")
+        self._display_combat_round_info()
+
+    def _handle_show_fighter(self, args: list) -> None:
+        """Handle displaying detailed information about a specific fighter."""
+        if len(args) != 1:
+            raise ValueError("Invalid show_fighter command. Use: show_fighter <fighter_name>")
+        fighter_name = args[0]
+        fighter = self.game_logic._get_fighter_by_name(fighter_name)
+        if fighter:
+            self.console.print(f"[bold]{fighter.name}[/bold]")
+            self._display_member_details({"members": [fighter]})
+        else:
+            self.console.print(f"Fighter {fighter_name} not found.")
+
+    def _handle_use_skill(self, args: list) -> None:
+        """Handle using a skill or special ability of a fighter."""
+        if len(args) != 2:
+            raise ValueError("Invalid use_skill command. Use: use_skill <fighter_name> <skill_name>")
+        fighter_name, skill_name = args
+        fighter = self.game_logic._get_fighter_by_name(fighter_name)
+        if not fighter:
+            raise ValueError(f"Fighter '{fighter_name}' not found")
+        
+        if skill_name in fighter.skills:
+            self.console.print(f"{fighter.name} used skill: {skill_name}")
+        else:
+            raise ValueError(f"Skill '{skill_name}' not found for fighter {fighter.name}")
 
     def _display_combat_round_info(self) -> None:
         """Display information about the current combat round."""
-        try:
-            current_round = self.game_logic.get_current_combat_round()
-            if current_round:
-                self.console.print(f"\n[bold]Current Combat Round: {current_round.round_number}[/bold]")
-                current_phase = self.game_logic.get_current_combat_phase()
-                if current_phase:
-                    self.console.print(f"Current Phase: {current_phase.name}")
-                    self.console.print(f"Description: {current_phase.description}")
-                    if current_phase.actions:
-                        self.console.print(f"Available Actions: {', '.join(current_phase.actions)}")
-                if current_round.special_rules:
-                    self.console.print(f"Special Rules: {', '.join(current_round.special_rules)}")
-                if current_round.summary:
-                    self.console.print(f"Round Summary: {current_round.summary}")
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying combat round info:[/bold red] {str(e)}")
-            logging.error(f"Error in display_combat_round_info: {str(e)}", exc_info=True)
+        current_round = self.game_logic.get_current_combat_round()
+        if current_round:
+            self.console.print(f"\n[bold]Current Combat Round: {current_round.round_number}[/bold]")
+            current_phase = self.game_logic.get_current_combat_phase()
+            if current_phase:
+                self.console.print(f"Current Phase: {current_phase.name}")
+                self.console.print(f"Description: {current_phase.description}")
+                if current_phase.actions:
+                    self.console.print(f"Available Actions: {', '.join(current_phase.actions)}")
+            if current_round.special_rules:
+                self.console.print(f"Special Rules: {', '.join(current_round.special_rules)}")
+            if current_round.summary:
+                self.console.print(f"Round Summary: {current_round.summary}")

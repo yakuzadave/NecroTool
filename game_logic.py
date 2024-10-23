@@ -1,30 +1,26 @@
 import logging
 import d20
 import random
-from models import GameState, Gang, Ganger, Weapon, WeaponProfile, CombatRound, CombatPhase, PhaseName, Scenario, ScenarioObjective, Battlefield, Tile, Consumable, Equipment
-from typing import List, Optional, Dict, Union, Any
+from models import GameState, Gang, Ganger, CombatRound, CombatPhase, PhaseName, Scenario, Battlefield, Tile
+from typing import Optional, List, Dict, Any
 from database import Database
-from rich.table import Table
-import contextlib
 
 class GameLogic:
     def __init__(self, db: Database):
         self.db = db
-        self.d20 = d20  # Initialize d20 as an attribute
+        self.d20 = d20
         self.game_state = self._initialize_game_state()
         self.active_fighter_index = 0
-        self.create_new_combat_round()  # Initialize the first combat round
+        self.create_new_combat_round()
         logging.info("GameLogic initialized")
 
     def _initialize_game_state(self) -> GameState:
-        # Create initial battlefield
         battlefield = Battlefield(
             width=24,
             height=24,
             tiles=[Tile(x=x, y=y, type='open') for x in range(24) for y in range(24)]
         )
         
-        # Create initial gangs
         goliaths = Gang(
             name="Goliaths",
             members=[
@@ -75,7 +71,6 @@ class GameLogic:
             ]
         )
         
-        # Return initialized game state
         return GameState(
             gangs=[goliaths, eschers],
             battlefield=battlefield,
@@ -85,7 +80,6 @@ class GameLogic:
         )
 
     def create_new_combat_round(self) -> None:
-        """Create a new combat round and add it to the game state."""
         new_round = CombatRound(
             round_number=len(self.game_state.combat_rounds) + 1,
             phases=[
@@ -101,44 +95,53 @@ class GameLogic:
         self.game_state.combat_rounds.append(new_round)
         logging.info(f"Created new combat round: {new_round.round_number}")
 
-    def resolve_combat(self, attacker: Ganger, defender: Ganger) -> str:
-        """Resolve combat between two fighters."""
-        attack_roll = self.d20.roll("1d6").total
-        if attack_roll >= attacker.weapon_skill:
-            # Hit successful
-            weapon = attacker.weapons[0] if attacker.weapons else None
-            if weapon:
-                strength = weapon.profiles[0].strength if weapon.profiles else attacker.strength
-                damage = weapon.profiles[0].damage if weapon.profiles else 1
-            else:
-                strength = attacker.strength
-                damage = 1
-
-            wound_roll = self.d20.roll("1d6").total
-            if wound_roll >= defender.toughness:
-                # Wound successful
-                actual_damage = self._apply_damage(defender, damage)
-                return f"{attacker.name} hit and wounded {defender.name} for {actual_damage} damage!"
-            else:
-                return f"{attacker.name} hit but failed to wound {defender.name}."
-        else:
-            return f"{attacker.name} missed {defender.name}."
-
-    def _apply_damage(self, target: Ganger, damage: int) -> int:
-        if target.armor:
-            armor_save = self.d20.roll("1d6").total
-            if armor_save >= target.armor.armor_rating:
-                damage = max(0, damage - 1)
+    def get_battlefield_state(self) -> str:
+        battlefield = self.game_state.battlefield
+        state = []
         
-        target.wounds -= damage
-        if target.wounds <= 0:
-            target.is_out_of_action = True
-            target.status = "Out of Action"
-        elif target.wounds <= 1:
-            target.is_seriously_injured = True
-            target.status = "Seriously Injured"
+        for y in range(battlefield.height):
+            row = []
+            for x in range(battlefield.width):
+                fighter_here = None
+                for gang in self.game_state.gangs:
+                    for fighter in gang.members:
+                        if fighter.x == x and fighter.y == y:
+                            fighter_here = fighter
+                            break
+                    if fighter_here:
+                        break
+                
+                if fighter_here:
+                    row.append(fighter_here.name[0])
+                else:
+                    tile = next((t for t in battlefield.tiles if t.x == x and t.y == y), None)
+                    if tile:
+                        if tile.type == "open":
+                            row.append(".")
+                        elif tile.type == "cover":
+                            row.append("#")
+                        else:
+                            row.append(str(tile.elevation))
+                    else:
+                        row.append(" ")
+            state.append("".join(row))
         
-        return damage
+        return "\n".join(state)
+
+    def move_fighter(self, fighter_name: str, x: int, y: int) -> bool:
+        fighter = self._get_fighter_by_name(fighter_name)
+        if not fighter:
+            return False
+        
+        if not (0 <= x < self.game_state.battlefield.width and 0 <= y < self.game_state.battlefield.height):
+            return False
+        
+        if abs(fighter.x - x) + abs(fighter.y - y) > fighter.movement:
+            return False
+        
+        fighter.x = x
+        fighter.y = y
+        return True
 
     def get_active_gang(self) -> Gang:
         return self.game_state.gangs[self.game_state.active_gang_index]
@@ -165,15 +168,6 @@ class GameLogic:
                     return fighter
         return None
 
-    def attack(self, attacker_name: str, target_name: str) -> str:
-        attacker = self._get_fighter_by_name(attacker_name)
-        target = self._get_fighter_by_name(target_name)
-        
-        if not attacker or not target:
-            return "Invalid attacker or target name."
-        
-        return self.resolve_combat(attacker, target)
-
     def get_current_combat_round(self) -> Optional[CombatRound]:
         if self.game_state.combat_rounds:
             return self.game_state.combat_rounds[-1]
@@ -182,7 +176,7 @@ class GameLogic:
     def get_current_combat_phase(self) -> Optional[CombatPhase]:
         current_round = self.get_current_combat_round()
         if current_round and current_round.phases:
-            return current_round.phases[0]  # Assume the first phase is the current one
+            return current_round.phases[0]
         return None
 
     def advance_combat_phase(self) -> None:
@@ -191,92 +185,31 @@ class GameLogic:
             current_round.phases.pop(0)
             if not current_round.phases:
                 self.create_new_combat_round()
-                
+            
             current_phase = self.get_current_combat_phase()
             if current_phase:
                 logging.info(f"Advanced to next phase: {current_phase.name}")
 
-    def move_fighter(self, fighter_name: str, x: int, y: int) -> bool:
-        """Move a fighter to new coordinates."""
-        fighter = self._get_fighter_by_name(fighter_name)
-        if not fighter:
-            return False
-        
-        if not (0 <= x < self.game_state.battlefield.width and 0 <= y < self.game_state.battlefield.height):
-            return False
-        
-        if abs(fighter.x - x) + abs(fighter.y - y) > fighter.movement:
-            return False
-        
-        fighter.x = x
-        fighter.y = y
-        return True
+    def get_scenario(self) -> Optional[Scenario]:
+        return self.game_state.scenario
 
-    def get_battlefield_state(self) -> str:
-        """Get a string representation of the current battlefield state."""
-        battlefield = self.game_state.battlefield
-        state = ""
-        for y in range(battlefield.height):
-            for x in range(battlefield.width):
-                # Check if there's a fighter at this position
-                fighter_here = None
-                for gang in self.game_state.gangs:
-                    for fighter in gang.members:
-                        if fighter.x == x and fighter.y == y:
-                            fighter_here = fighter
-                            break
-                    if fighter_here:
-                        break
-                
-                if fighter_here:
-                    state += fighter_here.name[0]  # First letter of fighter's name
-                else:
-                    tile = next((t for t in battlefield.tiles if t.x == x and t.y == y), None)
-                    if tile:
-                        if tile.type == "open":
-                            state += "."
-                        elif tile.type == "cover":
-                            state += "#"
-                        else:
-                            state += str(tile.elevation)
-                    else:
-                        state += " "
-            state += "\n"
-        return state
-
-    def calculate_victory_points(self) -> List[Dict[str, Union[str, int]]]:
-        """Calculate and return victory points for each gang."""
+    def calculate_victory_points(self) -> List[Dict[str, Any]]:
         results = []
         for gang in self.game_state.gangs:
-            points = gang.victory_points
-            
-            # Add points for surviving fighters
-            for fighter in gang.members:
-                if not fighter.is_out_of_action:
-                    points += 1
-                    if fighter.role == "Leader":
-                        points += 2
-            
             results.append({
                 "gang": gang.name,
-                "victory_points": points
+                "victory_points": gang.victory_points
             })
         return results
 
-    def get_scenario(self) -> Optional[Scenario]:
-        """Get the current scenario."""
-        return self.game_state.scenario
-
     def check_scenario_objectives(self) -> None:
-        """Check and update scenario objectives."""
-        if not self.game_state.scenario:
+        scenario = self.get_scenario()
+        if not scenario:
             return
-        
-        for objective in self.game_state.scenario.objectives:
+            
+        for objective in scenario.objectives:
             if not objective.completed:
-                # Check each objective condition
                 if objective.name == "Control Central Zone":
-                    # Count fighters in central zone for each gang
                     gang_counts = {gang.name: 0 for gang in self.game_state.gangs}
                     central_x_range = (self.game_state.battlefield.width // 2 - 2, self.game_state.battlefield.width // 2 + 2)
                     central_y_range = (self.game_state.battlefield.height // 2 - 2, self.game_state.battlefield.height // 2 + 2)
@@ -288,23 +221,19 @@ class GameLogic:
                                 not fighter.is_out_of_action):
                                 gang_counts[gang.name] += 1
                     
-                    # Find gang with most fighters in zone
                     max_count = max(gang_counts.values())
                     winning_gangs = [gang for gang, count in gang_counts.items() if count == max_count]
-                    if len(winning_gangs) == 1:  # Clear winner
+                    if len(winning_gangs) == 1:
                         objective.completed = True
-                        # Award points to winning gang
                         for gang in self.game_state.gangs:
                             if gang.name == winning_gangs[0]:
                                 gang.victory_points += objective.points
                 
                 elif objective.name == "Eliminate Enemy Leader":
-                    # Check if any gang's leader is out of action
                     for gang in self.game_state.gangs:
                         leader = next((f for f in gang.members if f.role == "Leader"), None)
                         if leader and leader.is_out_of_action:
                             objective.completed = True
-                            # Award points to the gang that eliminated the leader
                             opposing_gang = next((g for g in self.game_state.gangs if g != gang), None)
                             if opposing_gang:
                                 opposing_gang.victory_points += objective.points
