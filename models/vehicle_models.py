@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Annotated
 
+
 class Vehicle(BaseModel):
     """Represents a vehicle in Necromunda."""
     name: Annotated[str, Field(description="Name of the vehicle")]

@@ -54,21 +54,46 @@ class Ganger(BaseModel):
     cool: Annotated[int, Field(ge=2, le=10, description="Cool characteristic, between 2 and 10.")]
     will: Annotated[int, Field(ge=2, le=10, description="Will characteristic, between 2 and 10.")]
     intelligence: Annotated[int, Field(ge=2, le=10, description="Intelligence characteristic, between 2 and 10.")]
-    equipment: List[Equipment] = Field(default_factory=list, description="List of equipment carried.")
-    weapons: List[Weapon] = Field(default_factory=list, description="List of weapons carried.")
-    armor: Optional[Armor] = Field(None, description="Armor worn by the ganger.")
-    consumables: List[Consumable] = Field(default_factory=list, description="Consumables carried.")
-    skills: List[str] = Field(default_factory=list, description="List of skills the ganger possesses.")
-    special_rules: List[SpecialRule] = Field(default_factory=list, description="Special rules that apply to the ganger.")
-    injuries: List[Injury] = Field(default_factory=list, description="Permanent injuries sustained.")
-    xp: NonNegativeInt = Field(0, description="Experience points earned.")
-    x: Optional[int] = Field(None, description="X-coordinate on the battlefield.")
-    y: Optional[int] = Field(None, description="Y-coordinate on the battlefield.")
-    is_pinned: bool = Field(False, description="Indicates if the fighter is pinned.")
-    is_out_of_action: bool = Field(False, description="Indicates if the fighter is out of action.")
-    is_seriously_injured: bool = Field(False, description="Indicates if the fighter is seriously injured.")
-    is_prone: bool = Field(False, description="Indicates if the fighter is prone.")
-    status: Optional[str] = Field(None, description="Current status (e.g., 'Flesh Wound').")
+    equipment: Annotated[List[Equipment], Field(default_factory=list, description="List of equipment carried.")]
+    weapons: Annotated[List[Weapon], Field(default_factory=list, description="List of weapons carried.")]
+    armor: Annotated[Optional[Armor], Field(default=None, description="Armor worn by the ganger.")]
+    consumables: Annotated[List[Consumable], Field(default_factory=list, description="Consumables carried.")]
+    skills: Annotated[List[str], Field(default_factory=list, description="List of skills the ganger possesses.")]
+    special_rules: Annotated[List[SpecialRule], Field(default_factory=list, description="Special rules that apply to the ganger.")]
+    injuries: Annotated[List[Injury], Field(default_factory=list, description="Permanent injuries sustained.")]
+    xp: Annotated[NonNegativeInt, Field(default=0, description="Experience points earned.")]
+    x: Annotated[Optional[int], Field(default=None, description="X-coordinate on the battlefield.")]
+    y: Annotated[Optional[int], Field(default=None, description="Y-coordinate on the battlefield.")]
+    is_pinned: Annotated[bool, Field(default=False, description="Indicates if the fighter is pinned.")]
+    is_out_of_action: Annotated[bool, Field(default=False, description="Indicates if the fighter is out of action.")]
+    is_seriously_injured: Annotated[bool, Field(default=False, description="Indicates if the fighter is seriously injured.")]
+    is_prone: Annotated[bool, Field(default=False, description="Indicates if the fighter is prone.")]
+    status: Annotated[Optional[str], Field(default=None, description="Current status (e.g., 'Flesh Wound').")]
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Crusher",
+                    "gang_affiliation": "Goliath",
+                    "role": "Leader",
+                    "movement": 4,
+                    "weapon_skill": 3,
+                    "ballistic_skill": 4,
+                    "strength": 4,
+                    "toughness": 4,
+                    "wounds": 2,
+                    "initiative": 3,
+                    "attacks": 2,
+                    "leadership": 7,
+                    "cool": 7,
+                    "will": 7,
+                    "intelligence": 6
+                }
+            ]
+        }
+    }
 
 
 class Gang(BaseModel):
@@ -97,6 +122,7 @@ class Gang(BaseModel):
 
     model_config = {
         "arbitrary_types_allowed": True,
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
@@ -106,11 +132,12 @@ class Gang(BaseModel):
                     "credits": 1000,
                     "reputation": 0,
                     "territories": [],
-                    "victory_points": 0
+                    "special_rules": [],
+                    "victory_points": 0,
+                    "vehicles": []
                 }
             ]
-        },
-        "validate_assignment": True
+        }
     }
 
     def total_xp(self) -> int:

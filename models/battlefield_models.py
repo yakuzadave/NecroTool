@@ -15,6 +15,7 @@ class TileType(str, Enum):
 
 
 class Tile(BaseModel):
+    """Represents a single tile on the battlefield."""
     x: Annotated[int, Field(description="X-coordinate of the tile on the battlefield.")]
     y: Annotated[int, Field(description="Y-coordinate of the tile on the battlefield.")]
     type: Annotated[TileType, Field(description="Type of terrain this tile represents.")]
@@ -42,6 +43,7 @@ class Tile(BaseModel):
 
 
 class Battlefield(BaseModel):
+    """Represents the game battlefield composed of tiles."""
     width: Annotated[int, Field(description="Width of the battlefield in tiles.")]
     height: Annotated[int, Field(description="Height of the battlefield in tiles.")]
     tiles: Annotated[List[Tile], Field(default_factory=list, description="List of tiles that make up the battlefield.")]
@@ -87,5 +89,6 @@ class Battlefield(BaseModel):
 
     @classmethod
     def generate_default(cls, width: int, height: int) -> "Battlefield":
+        """Generate a default battlefield with all open tiles."""
         tiles = [Tile(x=x, y=y, type=TileType.OPEN) for y in range(height) for x in range(width)]
         return cls(width=width, height=height, tiles=tiles)
