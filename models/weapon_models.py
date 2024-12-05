@@ -24,6 +24,17 @@ class WeaponTrait(BaseModel):
     name: Annotated[str, Field(description="The name of the weapon trait, e.g., Rapid Fire, Knockback, Unwieldy.")]
     description: Annotated[Optional[str], Field(description="A description of the trait and its effect on the weapon or ganger.")]
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Rapid Fire",
+                    "description": "Allows the weapon to fire multiple times at a -1 to hit penalty"
+                }
+            ]
+        }
+    }
+
 
 class WeaponProfile(BaseModel):
     """Represents a firing mode or melee profile for a weapon."""
@@ -50,10 +61,14 @@ class WeaponProfile(BaseModel):
             "examples": [
                 {
                     "range": "Short: 0-8, Long: 8-24",
+                    "short_range_modifier": 0,
+                    "long_range_modifier": -1,
                     "strength": 4,
                     "armor_penetration": 1,
                     "damage": 1,
                     "ammo_roll": "4+",
+                    "blast_radius": None,
+                    "traits": []
                 }
             ]
         }
@@ -66,10 +81,40 @@ class Weapon(BaseModel):
     weapon_type: Annotated[WeaponType, Field(description="The type of the weapon, e.g., Basic, Pistol, Heavy, Melee.")]
     cost: Annotated[Optional[PositiveInt], Field(description="The credit cost of the weapon.")]
     rarity: Annotated[Optional[Rarity], Field(description="The rarity level of the weapon.")]
-    traits: List[WeaponTrait] = Field(default_factory=list, description="Traits or special abilities associated with the weapon.")
+    traits: Annotated[List[WeaponTrait], Field(default_factory=list, description="Traits or special abilities associated with the weapon.")]
     profiles: Annotated[List[WeaponProfile], Field(description="List of weapon profiles representing different firing modes or melee stats.")]
     is_unwieldy: Annotated[bool, Field(default=False, description="Indicates whether the weapon is unwieldy, adding penalties to movement or attack.")]
     description: Annotated[Optional[str], Field(description="A detailed description of the weapon.")]
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Bolt Pistol",
+                    "weapon_type": "Pistol",
+                    "cost": 25,
+                    "rarity": "Common",
+                    "traits": [],
+                    "profiles": [
+                        {
+                            "range": "Short: 0-8, Long: 8-16",
+                            "short_range_modifier": 0,
+                            "long_range_modifier": -1,
+                            "strength": 4,
+                            "armor_penetration": -1,
+                            "damage": 1,
+                            "ammo_roll": "6+",
+                            "blast_radius": None,
+                            "traits": []
+                        }
+                    ],
+                    "is_unwieldy": False,
+                    "description": "A compact but powerful pistol that fires mass-reactive bolt ammunition."
+                }
+            ]
+        }
+    }
 
     def calculate_effective_damage(self) -> int:
         """Calculate the effective damage of the weapon based on its profiles."""

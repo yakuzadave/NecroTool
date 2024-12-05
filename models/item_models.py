@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, PositiveInt, NonNegativeInt
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from enum import Enum
 
 
@@ -12,28 +12,28 @@ class Rarity(str, Enum):
 
 class SpecialRule(BaseModel):
     """Represents a special rule or effect associated with an item."""
-    name: str = Field(..., description="Name of the special rule.")
-    effect: Optional[str] = Field(None, description="Description of the rule's effect on gameplay.")
-    condition: Optional[str] = Field(None, description="Conditions under which the rule applies, if any.")
+    name: Annotated[str, Field(description="Name of the special rule.")]
+    effect: Annotated[Optional[str], Field(description="Description of the rule's effect on gameplay.")]
+    condition: Annotated[Optional[str], Field(description="Conditions under which the rule applies, if any.")]
 
 
 class Modifier(BaseModel):
     """Represents a stat modifier provided by an item."""
-    stat: str = Field(..., description="The stat being modified, e.g., 'Strength', 'Toughness'.")
-    value: int = Field(..., description="The value of the modifier, can be positive or negative.")
-    condition: Optional[str] = Field(None, description="Conditions under which the modifier applies, if any.")
+    stat: Annotated[str, Field(description="The stat being modified, e.g., 'Strength', 'Toughness'.")]
+    value: Annotated[int, Field(description="The value of the modifier, can be positive or negative.")]
+    condition: Annotated[Optional[str], Field(description="Conditions under which the modifier applies, if any.")]
 
 
 class Consumable(BaseModel):
     """Represents a consumable item used in battles or campaigns."""
-    name: str = Field(..., description="Name of the consumable item (e.g., Stimm-Slug Stash, Medipack).")
-    cost: Optional[PositiveInt] = Field(None, description="Credit cost of the consumable.")
-    rarity: Optional[Rarity] = Field(None, description="Rarity level of the consumable.")
-    uses: PositiveInt = Field(..., description="Number of uses the consumable item has.")
-    effect: Optional[str] = Field(None, description="Effect or benefit provided by the consumable item.")
-    side_effects: Optional[str] = Field(None, description="Negative side effects of using the consumable item.")
-    description: Optional[str] = Field(None, description="Detailed description of the consumable.")
-    special_rules: List[SpecialRule] = Field(default_factory=list, description="Special rules associated with the consumable.")
+    name: Annotated[str, Field(description="Name of the consumable item (e.g., Stimm-Slug Stash, Medipack).")]
+    cost: Annotated[Optional[PositiveInt], Field(description="Credit cost of the consumable.")]
+    rarity: Annotated[Optional[Rarity], Field(description="Rarity level of the consumable.")]
+    uses: Annotated[PositiveInt, Field(description="Number of uses the consumable item has.")]
+    effect: Annotated[Optional[str], Field(description="Effect or benefit provided by the consumable item.")]
+    side_effects: Annotated[Optional[str], Field(description="Negative side effects of using the consumable item.")]
+    description: Annotated[Optional[str], Field(description="Detailed description of the consumable.")]
+    special_rules: Annotated[List[SpecialRule], Field(default_factory=list, description="Special rules associated with the consumable.")]
 
     def use(self) -> bool:
         """Use one charge of the consumable, if available."""
@@ -49,14 +49,14 @@ class Consumable(BaseModel):
 
 class Equipment(BaseModel):
     """Represents an equipment item with various gameplay effects."""
-    name: str = Field(..., description="Name of the equipment (e.g., Grapnel Launcher, Photo-Visor).")
-    cost: Optional[PositiveInt] = Field(None, description="Credit cost of the equipment.")
-    rarity: Optional[Rarity] = Field(None, description="Rarity level of the equipment.")
-    weight: Optional[str] = Field(None, description="Weight category of the equipment (e.g., Light, Medium, Heavy).")
-    special_rules: List[SpecialRule] = Field(default_factory=list, description="Special rules associated with the equipment.")
-    modifiers: List[Modifier] = Field(default_factory=list, description="Stat modifiers provided by the equipment.")
-    is_restricted: bool = Field(False, description="Indicates if the equipment is restricted and requires special permission.")
-    description: Optional[str] = Field(None, description="Detailed description of the equipment.")
+    name: Annotated[str, Field(description="Name of the equipment (e.g., Grapnel Launcher, Photo-Visor).")]
+    cost: Annotated[Optional[PositiveInt], Field(description="Credit cost of the equipment.")]
+    rarity: Annotated[Optional[Rarity], Field(description="Rarity level of the equipment.")]
+    weight: Annotated[Optional[str], Field(description="Weight category of the equipment (e.g., Light, Medium, Heavy).")]
+    special_rules: Annotated[List[SpecialRule], Field(default_factory=list, description="Special rules associated with the equipment.")]
+    modifiers: Annotated[List[Modifier], Field(default_factory=list, description="Stat modifiers provided by the equipment.")]
+    is_restricted: Annotated[bool, Field(default=False, description="Indicates if the equipment is restricted and requires special permission.")]
+    description: Annotated[Optional[str], Field(description="Detailed description of the equipment.")]
 
     def has_rule(self, rule_name: str) -> bool:
         """Check if the equipment has a specific special rule."""
