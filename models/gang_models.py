@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, NonNegativeInt, PositiveInt, root_validator, ValidationError
+from pydantic import BaseModel, Field, NonNegativeInt, PositiveInt, model_validator, ValidationError
 from typing import List, Optional, Dict
 from enum import Enum
 from .armor_models import Armor
@@ -83,7 +83,8 @@ class Gang(BaseModel):
     victory_points: NonNegativeInt = Field(0, description="Victory points earned.")
     vehicles: List[Vehicle] = Field(default_factory=list, description="Vehicles owned by the gang.")
 
-    @root_validator(pre=True)
+    @model_validator(mode='before')
+    @classmethod
     def validate_gang_composition(cls, values):
         members = values.get("members", [])
         leaders = [m for m in members if m.role == GangerRole.LEADER]

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, PositiveInt, NonNegativeInt, root_validator
+from pydantic import BaseModel, Field, model_validator, PositiveInt, NonNegativeInt
 from typing import List, Optional
 from enum import Enum
 
@@ -37,7 +37,8 @@ class WeaponProfile(BaseModel):
     blast_radius: Optional[str] = Field(None, description="Blast radius of the weapon, if applicable (e.g., '3\" template').")
     traits: List[WeaponTrait] = Field(default_factory=list, description="Traits or special abilities associated with this profile.")
 
-    @root_validator
+    @model_validator(mode='before')
+    @classmethod
     def validate_range_structure(cls, values):
         """Ensure the range field has a valid structure."""
         range_value = values.get("range", "")

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional
 from enum import Enum
 from rich.console import Console
@@ -46,11 +46,12 @@ class Battlefield(BaseModel):
     height: int
     tiles: List[Tile] = Field(default_factory=list)
 
-    @root_validator
+    @model_validator(mode='before')
     def validate_tiles(cls, values):
-        width = values["width"]
-        height = values["height"]
-        for tile in values["tiles"]:
+        width = values.get("width")
+        height = values.get("height")
+        tiles = values.get("tiles", [])
+        for tile in tiles:
             if tile.x < 0 or tile.x >= width or tile.y < 0 or tile.y >= height:
                 raise ValueError(f"Tile at ({tile.x}, {tile.y}) is outside the battlefield dimensions.")
         return values

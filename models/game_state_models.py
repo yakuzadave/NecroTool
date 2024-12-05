@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field, PositiveInt, NonNegativeInt, root_validator
+from pydantic import BaseModel, Field, PositiveInt, NonNegativeInt, model_validator
+from typing_extensions import Annotated
 from typing import List, Optional
 from enum import Enum
 from .gang_models import Gang
@@ -28,7 +29,8 @@ class GameState(BaseModel):
     event_log: List[str] = Field(default_factory=list, description="Log of significant game events.")
     fighter_activations: List[str] = Field(default_factory=list, description="Track which fighters have been activated in the current turn.")
 
-    @root_validator(pre=True)
+    @model_validator(mode='before')
+    @classmethod
     def validate_active_gang_index(cls, values):
         """Ensure the active gang index is valid."""
         active_index = values.get("active_gang_index", 0)

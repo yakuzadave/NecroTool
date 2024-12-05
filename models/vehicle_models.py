@@ -8,5 +8,6 @@ class Vehicle(BaseModel):
     toughness: Optional[int] = Field(None, description="Toughness of the vehicle")
     armor_save: Optional[int] = Field(None, description="Armor save value of the vehicle")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {
+        "arbitrary_types_allowed": True
+    }

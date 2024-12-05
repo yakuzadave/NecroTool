@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+from typing_extensions import Annotated
 from typing import List, Optional
 from models import Weapon, WeaponTrait, WeaponProfile, Equipment, SpecialRule, Ganger, Armor
 
@@ -70,8 +71,9 @@ class GangerInput(BaseModel):
     special_rules: Optional[List[SpecialRuleInput]] = Field(default_factory=list, description="Special rules for the ganger.")
     armor: Optional[ArmorInput] = Field(None, description="Armor worn by the ganger.")
 
-    @validator("gang_affiliation")
-    def validate_gang_affiliation(cls, v):
+    @field_validator("gang_affiliation")
+    @classmethod
+    def validate_gang_affiliation(cls, v: str) -> str:
         valid_gangs = ["Goliath", "Escher", "Cawdor", "Orlock", "Van Saar", "Delaque"]
         if v not in valid_gangs:
             raise ValueError(f"Invalid gang affiliation. Must be one of: {', '.join(valid_gangs)}")

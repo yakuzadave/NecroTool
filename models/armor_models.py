@@ -56,8 +56,8 @@ class Armor(BaseModel):
     weight: Optional[float] = Field(None, description="Weight of the armor in kilograms, affecting movement penalties.")
     description: Optional[str] = Field(None, description="Additional details about the armor.")
 
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "name": "Furnace Plates",
                 "armor_type": "Furnace Plates",
@@ -82,3 +82,4 @@ class Armor(BaseModel):
                 "description": "Heavy, bulky armor designed to protect workers in harsh environments."
             }
         }
+    }

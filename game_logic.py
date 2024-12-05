@@ -22,7 +22,7 @@ class GameLogic:
             members=[
                 Ganger(
                     name="Crusher",
-                    gang_affiliation="Goliaths",
+                    gang_affiliation="Goliath",
                     role="Leader",
                     movement=4,
                     weapon_skill=3,
