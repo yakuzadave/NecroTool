@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from typing_extensions import Annotated
 from typing import List, Optional
 from models import Weapon, WeaponTrait, WeaponProfile, Equipment, SpecialRule, Ganger, Armor
+from models.gang_models import GangType, GangerRole
 
 
 # Input models for traits, weapons, equipment, etc.
@@ -51,7 +52,8 @@ class ArmorInput(BaseModel):
 # Input model for Ganger creation
 class GangerInput(BaseModel):
     name: str = Field(..., description="Name of the ganger.")
-    gang_affiliation: str = Field(..., description="Gang affiliation (e.g., Goliath, Escher).")
+    role: GangerRole = Field(..., description="Role of the gang member.")
+    gang_affiliation: GangType = Field(..., description="Gang affiliation type.")
     movement: int = Field(..., ge=1, le=10, description="Movement characteristic.")
     weapon_skill: int = Field(..., ge=2, le=6, description="Weapon skill characteristic.")
     ballistic_skill: int = Field(..., ge=2, le=6, description="Ballistic skill characteristic.")
@@ -65,19 +67,14 @@ class GangerInput(BaseModel):
     will: int = Field(..., ge=2, le=10, description="Will characteristic.")
     intelligence: int = Field(..., ge=2, le=10, description="Intelligence characteristic.")
     credits_value: int = Field(..., ge=0, description="Credits value assigned to this ganger.")
+    role: GangerRole = Field(..., description="Role of the gang member.")
     weapons: List[WeaponInput] = Field(..., min_items=1, description="List of weapons carried.")
     equipment: Optional[List[EquipmentInput]] = Field(default_factory=list, description="List of equipment carried.")
     skills: Optional[List[str]] = Field(default_factory=list, description="List of skills possessed.")
     special_rules: Optional[List[SpecialRuleInput]] = Field(default_factory=list, description="Special rules for the ganger.")
     armor: Optional[ArmorInput] = Field(None, description="Armor worn by the ganger.")
 
-    @field_validator("gang_affiliation")
-    @classmethod
-    def validate_gang_affiliation(cls, v: str) -> str:
-        valid_gangs = ["Goliath", "Escher", "Cawdor", "Orlock", "Van Saar", "Delaque"]
-        if v not in valid_gangs:
-            raise ValueError(f"Invalid gang affiliation. Must be one of: {', '.join(valid_gangs)}")
-        return v
+    
 
 
 # Create a Ganger instance

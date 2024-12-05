@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from enum import Enum
 from rich.console import Console
 from rich.table import Table
@@ -15,11 +15,11 @@ class TileType(str, Enum):
 
 
 class Tile(BaseModel):
-    x: int
-    y: int
-    type: TileType
-    elevation: int = 0
-    occupier: Optional[str] = None
+    x: Annotated[int, Field(description="X-coordinate of the tile on the battlefield.")]
+    y: Annotated[int, Field(description="Y-coordinate of the tile on the battlefield.")]
+    type: Annotated[TileType, Field(description="Type of terrain this tile represents.")]
+    elevation: Annotated[int, Field(default=0, description="Height level of the tile.")]
+    occupier: Annotated[Optional[str], Field(default=None, description="Name of the fighter occupying this tile.")]
 
     def render(self) -> Text:
         """Render the tile as a Rich Text object."""
@@ -42,20 +42,17 @@ class Tile(BaseModel):
 
 
 class Battlefield(BaseModel):
-    width: int
-    height: int
-    tiles: List[Tile] = Field(default_factory=list)
+    width: Annotated[int, Field(description="Width of the battlefield in tiles.")]
+    height: Annotated[int, Field(description="Height of the battlefield in tiles.")]
+    tiles: Annotated[List[Tile], Field(default_factory=list, description="List of tiles that make up the battlefield.")]
 
-    @model_validator(mode='before')
-    @classmethod
-    def validate_tiles(cls, values):
-        width = values.get("width")
-        height = values.get("height")
-        tiles = values.get("tiles", [])
-        for tile in tiles:
-            if tile.x < 0 or tile.x >= width or tile.y < 0 or tile.y >= height:
+    @model_validator(mode='after')
+    def validate_tiles(self) -> 'Battlefield':
+        """Validate that all tiles are within the battlefield dimensions."""
+        for tile in self.tiles:
+            if tile.x < 0 or tile.x >= self.width or tile.y < 0 or tile.y >= self.height:
                 raise ValueError(f"Tile at ({tile.x}, {tile.y}) is outside the battlefield dimensions.")
-        return values
+        return self
 
     model_config = {
         "arbitrary_types_allowed": True,
