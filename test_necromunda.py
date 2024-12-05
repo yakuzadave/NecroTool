@@ -1,7 +1,7 @@
 import unittest
 from game_logic import GameLogic
 from database import Database
-from models.gang_models import Ganger, Gang
+from models.gang_models import Ganger, Gang, GangerRole, GangType
 from models.weapon_models import Weapon, WeaponProfile
 from models.armor_models import Armor
 from models.item_models import Consumable, Equipment
@@ -18,8 +18,8 @@ class TestNecromundaSimulation(unittest.TestCase):
         print("Testing resolve_combat")
         attacker = Ganger(
             name="TestAttacker",
-            gang_affiliation="Goliaths",
-            role="Ganger",
+            gang_affiliation=GangType.GOLIATH,
+            role=GangerRole.GANGER,
             movement=4,
             weapon_skill=3,
             ballistic_skill=4,
@@ -35,8 +35,8 @@ class TestNecromundaSimulation(unittest.TestCase):
         )
         defender = Ganger(
             name="TestDefender",
-            gang_affiliation="Eschers",
-            role="Ganger",
+            gang_affiliation=GangType.ESCHER,
+            role=GangerRole.GANGER,
             movement=4,
             weapon_skill=3,
             ballistic_skill=4,

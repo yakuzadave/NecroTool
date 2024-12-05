@@ -2,6 +2,7 @@ import logging
 import d20
 from typing import Optional, List, Dict, Any
 from models import GameState, Gang, Ganger, CombatRound, CombatPhase, PhaseName, Scenario, Battlefield, Tile
+from models.gang_models import GangType, GangerRole
 from database import Database
 
 class GameLogic:
@@ -19,11 +20,12 @@ class GameLogic:
         # Define gangs with improved attributes
         goliaths = Gang(
             name="Goliaths",
+            type=GangType.GOLIATH,
             members=[
                 Ganger(
                     name="Crusher",
-                    gang_affiliation="Goliath",
-                    role="Leader",
+                    gang_affiliation=GangType.GOLIATH,
+                    role=GangerRole.LEADER,
                     movement=4,
                     weapon_skill=3,
                     ballistic_skill=4,
@@ -45,11 +47,12 @@ class GameLogic:
 
         eschers = Gang(
             name="Eschers",
+            type=GangType.ESCHER,
             members=[
                 Ganger(
                     name="Venom",
-                    gang_affiliation="Eschers",
-                    role="Leader",
+                    gang_affiliation=GangType.ESCHER,
+                    role=GangerRole.LEADER,
                     movement=5,
                     weapon_skill=3,
                     ballistic_skill=3,
@@ -83,9 +86,7 @@ class GameLogic:
             round_number=len(self.game_state.combat_rounds) + 1,
             phases=[
                 CombatPhase(name=PhaseName.PRIORITY, description="Determine which gang has priority for the round."),
-                CombatPhase(name=PhaseName.MOVEMENT, description="Each fighter can move based on their movement characteristic."),
-                CombatPhase(name=PhaseName.SHOOTING, description="Fighters can shoot at enemies if eligible."),
-                CombatPhase(name=PhaseName.CLOSE_COMBAT, description="Resolve close combat attacks."),
+                CombatPhase(name=PhaseName.ACTION, description="Fighters can perform actions like moving, shooting, and combat."),
                 CombatPhase(name=PhaseName.END, description="Resolve bottle tests and lingering effects.")
             ]
         )

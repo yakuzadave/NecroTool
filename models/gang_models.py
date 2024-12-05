@@ -91,10 +91,27 @@ class Gang(BaseModel):
         champions = [m for m in members if m.role == GangerRole.CHAMPION]
 
         if len(leaders) != 1:
-            raise ValidationError("Each gang must have exactly one Leader.")
+            raise ValueError("Each gang must have exactly one Leader.")
         if len(champions) > 2:
-            raise ValidationError("A gang can have a maximum of two Champions.")
+            raise ValueError("A gang can have a maximum of two Champions.")
         return values
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Goliaths",
+                    "type": "Goliath",
+                    "members": [],
+                    "credits": 1000,
+                    "reputation": 0,
+                    "territories": [],
+                    "victory_points": 0
+                }
+            ]
+        }
+    }
 
     def total_xp(self) -> int:
         """Calculate total experience points across all members."""

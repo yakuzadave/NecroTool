@@ -23,6 +23,10 @@ args = "Necromunda Simulation"
 task = "workflow.run"
 args = "Necromunda Simulation Tests"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Necromunda Tests"
+
 [[workflows.workflow]]
 name = "Start Necromunda Simulation"
 author = "agent"
@@ -52,6 +56,20 @@ author = "agent"
 
 [workflows.workflow.metadata]
 agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m unittest test_necromunda.py"
+
+[[workflows.workflow]]
+name = "Necromunda Tests"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

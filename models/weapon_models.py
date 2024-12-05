@@ -46,6 +46,21 @@ class WeaponProfile(BaseModel):
             raise ValueError("Range must specify both short and long ranges, e.g., 'Short: 0-8, Long: 8-24'.")
         return values
 
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "range": "Short: 0-8, Long: 8-24",
+                    "strength": 4,
+                    "armor_penetration": 1,
+                    "damage": 1,
+                    "ammo_roll": "4+",
+                }
+            ]
+        }
+    }
+
 
 class Weapon(BaseModel):
     """Represents a weapon, including its traits, profiles, and cost."""

@@ -47,6 +47,7 @@ class Battlefield(BaseModel):
     tiles: List[Tile] = Field(default_factory=list)
 
     @model_validator(mode='before')
+    @classmethod
     def validate_tiles(cls, values):
         width = values.get("width")
         height = values.get("height")
@@ -55,6 +56,19 @@ class Battlefield(BaseModel):
             if tile.x < 0 or tile.x >= width or tile.y < 0 or tile.y >= height:
                 raise ValueError(f"Tile at ({tile.x}, {tile.y}) is outside the battlefield dimensions.")
         return values
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "width": 24,
+                    "height": 24,
+                    "tiles": []
+                }
+            ]
+        }
+    }
 
     def render(self) -> Panel:
         """Render the battlefield as a Rich Panel."""
