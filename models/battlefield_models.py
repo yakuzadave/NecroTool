@@ -1,16 +1,79 @@
-# battlefield_models.py
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field, root_validator
+from typing import List, Optional
+from enum import Enum
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
+from rich.panel import Panel
 
-# Represents a tile on the battlefield, with position and type.
+
+class TileType(str, Enum):
+    OPEN = "open"
+    COVER = "cover"
+    ELEVATION = "elevation"
+    OBSTRUCTION = "obstruction"
+
+
 class Tile(BaseModel):
-    x: int  # X-coordinate of the tile.
-    y: int  # Y-coordinate of the tile.
-    type: str  # Type of the tile (e.g., 'open', 'cover', 'elevation').
-    elevation: int = 0  # Elevation level of the tile.
+    x: int
+    y: int
+    type: TileType
+    elevation: int = 0
+    occupier: Optional[str] = None
 
-# Represents the entire battlefield, composed of multiple tiles.
+    def render(self) -> Text:
+        """Render the tile as a Rich Text object."""
+        char = {
+            TileType.OPEN: ".",
+            TileType.COVER: "#",
+            TileType.ELEVATION: "^",
+            TileType.OBSTRUCTION: "X",
+        }.get(self.type, "?")
+        color = {
+            TileType.OPEN: "white",
+            TileType.COVER: "green",
+            TileType.ELEVATION: "blue",
+            TileType.OBSTRUCTION: "red",
+        }.get(self.type, "white")
+        if self.occupier:
+            char = self.occupier[0].upper()  # Use the first letter of the occupier's name.
+            color = "yellow"
+        return Text(char, style=color)
+
+
 class Battlefield(BaseModel):
-    width: int  # Width of the battlefield.
-    height: int  # Height of the battlefield.
-    tiles: List[Tile]  # List of tiles representing the battlefield.
+    width: int
+    height: int
+    tiles: List[Tile] = Field(default_factory=list)
+
+    @root_validator
+    def validate_tiles(cls, values):
+        width = values["width"]
+        height = values["height"]
+        for tile in values["tiles"]:
+            if tile.x < 0 or tile.x >= width or tile.y < 0 or tile.y >= height:
+                raise ValueError(f"Tile at ({tile.x}, {tile.y}) is outside the battlefield dimensions.")
+        return values
+
+    def render(self) -> Panel:
+        """Render the battlefield as a Rich Panel."""
+        grid = [["" for _ in range(self.width)] for _ in range(self.height)]
+        for tile in self.tiles:
+            grid[tile.y][tile.x] = tile.render()
+
+        rendered_rows = [
+            Text("".join(str(cell) for cell in row)) for row in grid
+        ]
+
+        battlefield_text = Text("\n").join(rendered_rows)
+        return Panel(
+            battlefield_text,
+            title="Battlefield",
+            subtitle="Legend: .(Open) # (Cover) ^ (Elevation) X (Obstruction) Y (Occupier)",
+            border_style="cyan",
+        )
+
+    @classmethod
+    def generate_default(cls, width: int, height: int) -> "Battlefield":
+        tiles = [Tile(x=x, y=y, type=TileType.OPEN) for y in range(height) for x in range(width)]
+        return cls(width=width, height=height, tiles=tiles)
