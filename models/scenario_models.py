@@ -23,6 +23,20 @@ class ScenarioObjective(BaseModel):
         }
     }
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Capture Territory",
+                    "description": "Control the central objective marker for 2 turns",
+                    "rewards": ["100 credits", "Territory card"],
+                    "completed": False,
+                    "points": 3
+                }
+            ]
+        }
+    }
+
 class ScenarioDeploymentZone(BaseModel):
     """Represents a deployment zone in a scenario where gangs can set up."""
     name: Annotated[str, Field(description="Name of the deployment zone.")]
@@ -30,6 +44,21 @@ class ScenarioDeploymentZone(BaseModel):
     starting_positions: Annotated[Optional[Dict[str, Tuple[int,int]]], Field(
         description="A mapping of gang names to their starting coordinates, e.g., {'Red Runners': (0,0)}."
     )]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "North Zone",
+                    "description": "Deploy within 6\" of the north table edge",
+                    "starting_positions": {
+                        "Goliaths": (0, 0),
+                        "Eschers": (1, 0)
+                    }
+                }
+            ]
+        }
+    }
 
     model_config = {
         "json_schema_extra": {
@@ -64,8 +93,8 @@ class ScenarioSpecialRule(BaseModel):
 
 class ScenarioRewards(BaseModel):
     """Represents the rewards available for completing a scenario."""
-    credits: Annotated[NonNegativeInt, Field(default=0)]
-    reputation: Annotated[NonNegativeInt, Field(default=0)]
+    credits: Annotated[NonNegativeInt, Field(default=0, description="Amount of credits awarded")]
+    reputation: Annotated[NonNegativeInt, Field(default=0, description="Amount of reputation points gained")]
     items: Annotated[Optional[List[str]], Field(default=None, description="Special equipment rewards")]
 
     model_config = {
@@ -89,7 +118,8 @@ class Scenario(BaseModel):
     special_rules: Annotated[List[ScenarioSpecialRule], Field(default_factory=list, description="List of special rules.")]
     max_gangs: Annotated[PositiveInt, Field(default=2, description="The maximum number of gangs that can participate.")]
     duration: Annotated[Optional[Union[str, int, Tuple[int,int]]], Field(
-        description="The expected duration of the scenario. Can be a string ('3-5 turns'), an integer (5 turns), or a tuple (3,5)."
+        description="The expected duration of the scenario. Can be a string ('3-5 turns'), an integer (5 turns), or a tuple (3,5).",
+        examples=["3-5 turns", 5, (3,5)]
     )]
     rewards: Annotated[Optional[ScenarioRewards], Field(description="Rewards for winning the scenario.")]
 

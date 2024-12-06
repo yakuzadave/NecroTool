@@ -117,5 +117,11 @@ class Weapon(BaseModel):
     }
 
     def calculate_effective_damage(self) -> int:
-        """Calculate the effective damage of the weapon based on its profiles."""
+        """Calculate the effective damage of the weapon based on its profiles.
+        
+        Returns:
+            int: The highest damage value among all weapon profiles
+        """
+        if not self.profiles:
+            return 0
         return max(profile.damage for profile in self.profiles)

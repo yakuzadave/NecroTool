@@ -21,6 +21,7 @@ class Action(BaseModel):
     effect: Annotated[Optional[str], Field(description="Effect of the action on gameplay.")]
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
@@ -29,6 +30,13 @@ class Action(BaseModel):
                     "description": "Move up to your Movement characteristic in inches",
                     "conditions": "Not engaged in combat",
                     "effect": "Changes position on battlefield"
+                },
+                {
+                    "name": "Charge",
+                    "action_type": "Double",
+                    "description": "Move into close combat with an enemy",
+                    "conditions": "Target must be within charge range",
+                    "effect": "Engages target in close combat"
                 }
             ]
         }
@@ -46,12 +54,34 @@ class CombatPhase(BaseModel):
         return f"{self.name.value}: Actions available - {actions_summary}"
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
+                    "name": "Priority Phase",
+                    "description": "Determine which gang takes the first turn",
+                    "actions": [
+                        {
+                            "name": "Roll Priority",
+                            "action_type": "Simple",
+                            "description": "Roll dice to determine initiative",
+                            "conditions": "Once per round",
+                            "effect": "Sets activation order"
+                        }
+                    ]
+                },
+                {
                     "name": "Action Phase",
                     "description": "Main phase where fighters perform their actions",
-                    "actions": []
+                    "actions": [
+                        {
+                            "name": "Move",
+                            "action_type": "Simple",
+                            "description": "Move up to Movement characteristic",
+                            "conditions": "Not engaged in combat",
+                            "effect": "Changes position"
+                        }
+                    ]
                 }
             ]
         }
@@ -76,14 +106,31 @@ class CombatRound(BaseModel):
         self.summary = f"Round {self.round_number} Summary:\n{phase_summaries}\nEvents:\n{events}"
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
                     "round_number": 1,
-                    "phases": [],
-                    "special_rules": [],
-                    "summary": None,
-                    "event_log": []
+                    "phases": [
+                        {
+                            "name": "Priority Phase",
+                            "description": "Determine activation order",
+                            "actions": []
+                        },
+                        {
+                            "name": "Action Phase",
+                            "description": "Main combat actions",
+                            "actions": []
+                        },
+                        {
+                            "name": "End Phase",
+                            "description": "Resolve end of round effects",
+                            "actions": []
+                        }
+                    ],
+                    "special_rules": ["Darkness: -1 to all shooting attacks"],
+                    "summary": "First round of combat - Priority phase completed",
+                    "event_log": ["Gang A won priority roll", "Fighter B moved to cover"]
                 }
             ]
         }

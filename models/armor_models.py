@@ -63,7 +63,7 @@ class Armor(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "example": {
+            "examples": [{
                 "name": "Furnace Plates",
                 "armor_type": "Furnace Plates",
                 "save_value": 6,
@@ -85,6 +85,8 @@ class Armor(BaseModel):
                 "rarity": "Rare",
                 "weight": 5.0,
                 "description": "Heavy, bulky armor designed to protect workers in harsh environments."
-            }
-        }
+            }]
+        },
+        "arbitrary_types_allowed": True,
+        "validate_assignment": True
     }

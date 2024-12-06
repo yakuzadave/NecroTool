@@ -16,11 +16,26 @@ class TileType(str, Enum):
 
 class Tile(BaseModel):
     """Represents a single tile on the battlefield."""
-    x: Annotated[int, Field(description="X-coordinate of the tile on the battlefield.")]
-    y: Annotated[int, Field(description="Y-coordinate of the tile on the battlefield.")]
+    x: Annotated[int, Field(description="X-coordinate of the tile on the battlefield.", ge=0)]
+    y: Annotated[int, Field(description="Y-coordinate of the tile on the battlefield.", ge=0)]
     type: Annotated[TileType, Field(description="Type of terrain this tile represents.")]
-    elevation: Annotated[int, Field(default=0, description="Height level of the tile.")]
+    elevation: Annotated[int, Field(default=0, description="Height level of the tile.", ge=0)]
     occupier: Annotated[Optional[str], Field(default=None, description="Name of the fighter occupying this tile.")]
+
+    model_config = {
+        "validate_assignment": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "x": 0,
+                    "y": 0,
+                    "type": "open",
+                    "elevation": 0,
+                    "occupier": None
+                }
+            ]
+        }
+    }
 
     def render(self) -> Text:
         """Render the tile as a Rich Text object."""
@@ -54,16 +69,27 @@ class Battlefield(BaseModel):
         for tile in self.tiles:
             if tile.x < 0 or tile.x >= self.width or tile.y < 0 or tile.y >= self.height:
                 raise ValueError(f"Tile at ({tile.x}, {tile.y}) is outside the battlefield dimensions.")
+            if not isinstance(tile, Tile):
+                raise ValueError(f"Invalid tile type at ({tile.x}, {tile.y})")
         return self
 
     model_config = {
         "arbitrary_types_allowed": True,
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
                     "width": 24,
                     "height": 24,
-                    "tiles": []
+                    "tiles": [
+                        {
+                            "x": 0,
+                            "y": 0,
+                            "type": "open",
+                            "elevation": 0,
+                            "occupier": None
+                        }
+                    ]
                 }
             ]
         }

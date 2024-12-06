@@ -16,12 +16,38 @@ class SpecialRule(BaseModel):
     effect: Annotated[Optional[str], Field(description="Description of the rule's effect on gameplay.")]
     condition: Annotated[Optional[str], Field(description="Conditions under which the rule applies, if any.")]
 
+    model_config = {
+        "validate_assignment": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Rapid Fire",
+                    "effect": "Allows two shots at -1 to hit",
+                    "condition": "When using a Basic weapon"
+                }
+            ]
+        }
+    }
+
 
 class Modifier(BaseModel):
     """Represents a stat modifier provided by an item."""
     stat: Annotated[str, Field(description="The stat being modified, e.g., 'Strength', 'Toughness'.")]
     value: Annotated[int, Field(description="The value of the modifier, can be positive or negative.")]
     condition: Annotated[Optional[str], Field(description="Conditions under which the modifier applies, if any.")]
+
+    model_config = {
+        "validate_assignment": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "stat": "Strength",
+                    "value": 1,
+                    "condition": "When in close combat"
+                }
+            ]
+        }
+    }
 
 
 class Consumable(BaseModel):
@@ -46,6 +72,30 @@ class Consumable(BaseModel):
         """Check if the consumable is out of uses."""
         return self.uses <= 0
 
+    model_config = {
+        "validate_assignment": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Stimm-Slug Stash",
+                    "cost": 30,
+                    "rarity": "Rare",
+                    "uses": 3,
+                    "effect": "Gain +1 Strength and +1 Toughness for one round",
+                    "side_effects": "Take one automatic hit at the end of the round",
+                    "description": "A powerful combat stimulant that enhances physical capabilities",
+                    "special_rules": [
+                        {
+                            "name": "Combat Boost",
+                            "effect": "Temporary stat increase",
+                            "condition": "Must be used before activation"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
 
 class Equipment(BaseModel):
     """Represents an equipment item with various gameplay effects."""
@@ -65,4 +115,34 @@ class Equipment(BaseModel):
     def applicable_modifiers(self, stat: str) -> List[Modifier]:
         """Get modifiers applicable to a specific stat."""
         return [mod for mod in self.modifiers if mod.stat == stat]
+
+    model_config = {
+        "validate_assignment": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Photo-Visor",
+                    "cost": 35,
+                    "rarity": "Common",
+                    "weight": "Light",
+                    "special_rules": [
+                        {
+                            "name": "Night Vision",
+                            "effect": "Ignore darkness penalties",
+                            "condition": "When equipped"
+                        }
+                    ],
+                    "modifiers": [
+                        {
+                            "stat": "Ballistic Skill",
+                            "value": 1,
+                            "condition": "When shooting at targets in cover"
+                        }
+                    ],
+                    "is_restricted": False,
+                    "description": "Advanced optical enhancement device that improves targeting and visibility in low-light conditions."
+                }
+            ]
+        }
+    }
 
