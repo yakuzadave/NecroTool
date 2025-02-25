@@ -46,3 +46,74 @@
 2025-02-25 19:16:49,986 - INFO - GameLogic initialized
 2025-02-25 19:16:49,990 - INFO - Sample scenario initialized.
 2025-02-25 19:16:49,990 - INFO - UserInterface initialized
+2025-02-25 19:22:43,398 - INFO - Logging setup complete.
+2025-02-25 19:22:43,408 - INFO - Created new combat round: 1
+2025-02-25 19:22:43,410 - INFO - GameLogic initialized
+2025-02-25 19:22:43,418 - INFO - Sample scenario initialized.
+2025-02-25 19:22:43,418 - INFO - UserInterface initialized
+2025-02-25 19:22:43,429 - INFO - Command executed: help
+2025-02-25 19:22:43,447 - INFO - Command executed: status
+2025-02-25 19:22:43,454 - INFO - Command executed: map
+2025-02-25 19:22:43,465 - INFO - Command executed: objectives
+2025-02-25 19:22:43,469 - INFO - Command executed: show_combat_round
+2025-02-25 19:22:43,473 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'attack'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 46, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 167, in _handle_attack
+    result = self.game_logic.attack(args[0], args[1])
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'attack'
+2025-02-25 19:22:43,474 - INFO - Command executed: attack Crusher Venom
+2025-02-25 19:22:43,477 - INFO - Command executed: end_activation
+2025-02-25 19:22:43,479 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'attack'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 46, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 167, in _handle_attack
+    result = self.game_logic.attack(args[0], args[1])
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'attack'
+2025-02-25 19:22:43,480 - INFO - Command executed: attack Venom Crusher
+2025-02-25 19:22:43,484 - INFO - Command executed: end_activation
+2025-02-25 19:22:43,490 - INFO - Advanced from phase: PhaseName.PRIORITY
+2025-02-25 19:22:43,490 - INFO - Next phase: PhaseName.ACTION
+2025-02-25 19:22:43,491 - INFO - Command executed: advance_phase
+2025-02-25 19:22:43,500 - INFO - Command executed: show_combat_round
+2025-02-25 19:22:43,502 - ERROR - crusher cannot move 5 spaces (including terrain costs); maximum movement is 4.
+2025-02-25 19:22:43,504 - INFO - Command executed: move Crusher 2 3
+2025-02-25 19:22:43,507 - INFO - Command executed: end_activation
+2025-02-25 19:22:43,515 - ERROR - venom cannot move 43 spaces (including terrain costs); maximum movement is 5.
+2025-02-25 19:22:43,516 - INFO - Command executed: move Venom 1 2
+2025-02-25 19:22:43,542 - INFO - Command executed: end_activation
+2025-02-25 19:22:43,551 - INFO - Advanced from phase: PhaseName.ACTION
+2025-02-25 19:22:43,551 - INFO - Next phase: PhaseName.END
+2025-02-25 19:22:43,563 - INFO - Command executed: advance_phase
+2025-02-25 19:22:43,573 - INFO - Command executed: show_combat_round
+2025-02-25 19:22:43,579 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'attack'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 46, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 167, in _handle_attack
+    result = self.game_logic.attack(args[0], args[1])
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'attack'
+2025-02-25 19:22:43,606 - INFO - Command executed: attack Crusher Venom
+2025-02-25 19:22:43,615 - INFO - Command executed: end_activation
+2025-02-25 19:22:43,639 - ERROR - Unexpected error in process_command: 'GameLogic' object has no attribute 'attack'
+Traceback (most recent call last):
+  File "/home/runner/workspace/user_interface.py", line 46, in process_command
+    handler(parts[1:] if len(parts) > 1 else [])
+  File "/home/runner/workspace/user_interface.py", line 167, in _handle_attack
+    result = self.game_logic.attack(args[0], args[1])
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GameLogic' object has no attribute 'attack'
+2025-02-25 19:22:43,646 - INFO - Command executed: attack Venom Crusher
+2025-02-25 19:22:43,663 - INFO - Command executed: end_activation
+2025-02-25 19:22:43,665 - INFO - Advanced from phase: PhaseName.END
+2025-02-25 19:22:43,665 - INFO - Created new combat round: 2
+2025-02-25 19:22:43,669 - INFO - Command executed: advance_phase
+2025-02-25 19:22:43,672 - INFO - Command executed: show_combat_round
+2025-02-25 19:22:43,687 - INFO - Command executed: status
+2025-02-25 19:22:43,691 - INFO - Command executed: objectives
+2025-02-25 19:22:43,694 - INFO - Command executed: victory_points
