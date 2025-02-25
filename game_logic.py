@@ -486,6 +486,13 @@ class GameLogic:
         """
         Calculate if a hit causes a wound, following the Necromunda Core Rulebook rules.
         
+        Wounds are determined by comparing Strength vs Toughness and rolling a D6:
+        - Strength TWICE Toughness or greater: 2+
+        - Strength GREATER than Toughness: 3+
+        - Strength EQUAL to Toughness: 4+
+        - Strength LOWER than Toughness: 5+
+        - Strength HALF Toughness or lower: 6+
+        
         Args:
             attacker: The attacking fighter
             defender: The defending fighter
@@ -543,7 +550,13 @@ class GameLogic:
 
     def resolve_armor_save(self, defender: Ganger, weapon: Optional[Weapon] = None) -> tuple[bool, str, int]:
         """
-        Resolve armor save attempt according to Necromunda rulebook.
+        Resolve armor save attempt according to Necromunda Core Rulebook.
+        
+        Armor Save Rules:
+        - Only one Save roll is allowed per hit
+        - Armor Penetration (AP) may make saves impossible (if modified save exceeds 7)
+        - Fighters without armor but with save modifiers use a base save of 7+
+        - Natural 1 is always a failure regardless of modifiers
         
         Args:
             defender: The fighter attempting to make a save
@@ -552,9 +565,6 @@ class GameLogic:
         Returns:
             tuple[bool, str, int]: Success status, message, and the natural roll
         """
-        if not defender.armor:
-            return (False, "No armor save available", 0)
-
         # Check for weapon traits that disallow saves
         if weapon and weapon.traits:
             for trait in weapon.traits:
@@ -562,7 +572,9 @@ class GameLogic:
                     return (False, "Gas Weapon trait prevents armor saves", 0)
 
         # Get base save value (e.g., 5 for a 5+ save)
-        save_value = defender.armor.save_value
+        save_value = 7  # Default for unarmored fighters per Necromunda rules
+        if defender.armor:
+            save_value = defender.armor.save_value
 
         # Apply weapon AP (armor penetration) if any
         ap_modifier = 0
@@ -572,9 +584,19 @@ class GameLogic:
         # Apply weapon traits that affect armor penetration
         weapon_trait_mods = self.apply_weapon_traits(defender, defender, weapon)
         ap_modifier += weapon_trait_mods['ap']
+        
+        # Apply positive save modifiers from cover
+        cover_status = self._get_target_cover_status(defender, defender)  # Self as attacker is placeholder
+        cover_save_bonus = 0
+        if cover_status == "partial":
+            cover_save_bonus = -1  # -1 to the save value (makes it easier to save)
+        elif cover_status == "full":
+            cover_save_bonus = -2  # -2 to the save value (makes it much easier to save)
+            
+        logging.debug(f"Cover status: {cover_status}, save bonus: {cover_save_bonus}")
 
-        # Calculate modified save value
-        modified_save = save_value + ap_modifier
+        # Calculate modified save value (AP makes it harder, cover makes it easier)
+        modified_save = save_value + ap_modifier + cover_save_bonus
         
         # If AP makes the save impossible (>7), no save is allowed
         if modified_save > 7:

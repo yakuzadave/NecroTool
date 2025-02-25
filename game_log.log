@@ -145,3 +145,8 @@ Traceback (most recent call last):
              ^^^^^^^
 EOFError: EOF when reading a line
 2025-02-25 19:34:52,195 - INFO - Necromunda Simulation ended.
+2025-02-25 19:41:55,858 - INFO - Logging setup complete.
+2025-02-25 19:41:55,861 - INFO - Created new combat round: 1
+2025-02-25 19:41:55,861 - INFO - GameLogic initialized
+2025-02-25 19:41:55,865 - INFO - Sample scenario initialized.
+2025-02-25 19:41:55,865 - INFO - UserInterface initialized

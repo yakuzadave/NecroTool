@@ -1,0 +1,39 @@
+Resolve Hits
+RAW ✔️ Necromunda Core Rulebook (2023), p124
+
+Whenever a successful Hit roll is made against a model, there is a good chance that hit will cause that model to suffer a degree of damage. Determining how badly damaged a model is and what the effects of that damage are differs between fighters and vehicles.
+
+Resolving Hits Against Fighters
+When a fighter suffers a Hit, follow this sequence:
+
+1. Make Wound Roll
+2. Make a Save Roll
+3. Inflict Damage
+
+1. Make Wound Roll
+Whenever a Wound roll is made against a fighter, it is always the opposing player that makes it. Cross reference the weapon's Strength with the hit fighter's Toughness and roll a D6 on the table below to determine if the fighter is wounded by the attack:
+
+Strength vs Toughness	D6 Roll Required
+Is the Strength TWICE the Toughness or greater?	2+
+Is the Strength GREATER than the Toughness?	3+
+Is the Strength EQUAL to the Toughness?	4+
+Is the Strength LOWER than the Toughness?	5+
+Is the Strength HALF the Toughness or lower?	6+
+2. Make A Save Roll
+If a hit results in a successful Wound roll, or leads to an Injury roll being made against the fighter for any reason, the fighter may be able to make a Save roll.
+
+Only one Save roll may be made for each hit that successfully wounds, or leads to an Injury roll being made, regardless of how many different Save rolls a fighter may have. For example, if a fighter wears both mesh armour and a refractor field, they may only attempt a Save roll against a successful Wound roll with one of those items.
+
+Save rolls are made either:
+
+After the Wound roll is made but before the Wound is removed from the fighter, in which case the Wound is 'saved' and not removed.
+If the attack has a Damage '-' characteristic and causes an Injury dice to be rolled against the fighter for any reason, a Save roll is made before any Injury dice are rolled.
+Players should note that some weapon traits will disallow Save rolls. For example, the Gas Weapon trait states that no Save roll can be made. In such cases, regardless of any modifiers, no Save roll can be made.
+
+Armour Penetration: It may happen that the Armour Penetration (AP) characteristic of a weapon is greater than the Save roll granted by the armour a fighter wears, thus cancelling out the Save roll. For example, a fighter wearing mesh armour has a Save roll of 5+, but if they are hit by a weapon with AP -3, no Save roll would be possible.
+
+Positive Save Modifiers: In some situations, such as a fighter benefitting from partial or full cover against an attack that uses a Blast marker, a fighter's Save roll may be improved. In such situations, this positive modifier may be added to a fighter's normal Save roll, but may not be added to Field armour. For example, if a fighter wearing mesh armour (5+ save) and a displacer field (4+ save) gains a +1 modifier to their Save roll, they may improve their mesh armour save to 4+ but may not improve their displacer field save to 3+.
+
+If a fighter not wearing armour benefits from a positive save modifier, treat their save as 7+ for the purposes of modification. For example, if a fighter wearing no armour gains a +2 save modifier, they will be able to make a Save roll of 5+.
+
+Rolls of a Natural 1: A roll of a natural 1 when making a Save roll is always an automatic failure, regardless of any modifiers that may apply.

@@ -84,9 +84,23 @@ class TestNecromundaSimulation(unittest.TestCase):
             armor=self.test_armor
         )
 
-        # Mock the dice rolls to ensure a hit (WS * 3 = 9, so roll under)
-        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 8})()
-
+        # Create a counter to sequence different dice roll results for the various roll types
+        self.roll_counter = 0
+        
+        def mock_roll(_):
+            self.roll_counter += 1
+            if self.roll_counter == 1:  # Hit roll
+                return type('MockRoll', (), {'total': 6})()  # Natural 6 for critical hit
+            elif self.roll_counter == 2:  # Wound roll
+                return type('MockRoll', (), {'total': 5})()  # Successful wound roll
+            elif self.roll_counter == 3:  # Save roll
+                return type('MockRoll', (), {'total': 1})()  # Natural 1 always fails
+            elif self.roll_counter == 4:  # Injury roll
+                return type('MockRoll', (), {'total': 4})()  # 4 is OUT_OF_ACTION (4-5)
+            return type('MockRoll', (), {'total': 6})()
+            
+        self.game_logic.d20.roll = mock_roll
+        
         result = self.game_logic.resolve_combat(attacker, defender, self.test_weapon)
 
         self.assertIn("TestAttacker hit TestDefender", result)
@@ -113,9 +127,39 @@ class TestNecromundaSimulation(unittest.TestCase):
             armor=self.test_armor
         )
 
-        # Mock a successful armor save
-        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 15})()
-        save_success, msg, roll = self.game_logic.resolve_armor_save(defender, self.test_weapon)
+        # Override the cover status check to return "none"
+        original_cover_status = self.game_logic._get_target_cover_status
+        self.game_logic._get_target_cover_status = lambda *args: "none"
+        
+        # Create a custom weapon with low AP that won't negate the save
+        weapon = Weapon(
+            name="Stub Gun",
+            weapon_type=WeaponType.PISTOL,
+            cost=10,
+            rarity=Rarity.COMMON,
+            profiles=[
+                WeaponProfile(
+                    range="Short: 0-8, Long: 8-16",
+                    strength=3,
+                    armor_penetration=0,  # No AP
+                    damage=1,
+                    short_range_modifier=0,
+                    long_range_modifier=0,
+                    ammo_roll=None,
+                    blast_radius=None,
+                    traits=[]
+                )
+            ],
+            description="A simple pistol"
+        )
+        
+        # Mock a successful armor save - roll of 6 should pass a 6+ save
+        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 6})()
+        save_success, msg, roll = self.game_logic.resolve_armor_save(defender, weapon)
+        
+        # Restore original method
+        self.game_logic._get_target_cover_status = original_cover_status
+        
         self.assertTrue(save_success)
 
     def test_charge_mechanics(self):
@@ -222,10 +266,31 @@ class TestNecromundaSimulation(unittest.TestCase):
             armor=self.test_armor
         )
 
-        # Mock dice rolls to ensure hits
-        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 6})()
+        # Create a counter to sequentially return different roll results
+        self.roll_counter = 0
+        
+        def mock_roll(_):
+            self.roll_counter += 1
+            if self.roll_counter % 4 == 1:  # Hit roll
+                return type('MockRoll', (), {'total': 6})()  # Natural 6 for critical hit
+            elif self.roll_counter % 4 == 2:  # Wound roll
+                return type('MockRoll', (), {'total': 5})()  # Successful wound roll
+            elif self.roll_counter % 4 == 3:  # Save roll
+                return type('MockRoll', (), {'total': 1})()  # Natural 1 always fails save
+            elif self.roll_counter % 4 == 0:  # Injury roll
+                return type('MockRoll', (), {'total': 4})()  # 4 is OUT_OF_ACTION (4-5)
+            return type('MockRoll', (), {'total': 6})()
+            
+        # Override the cover status check to return "none"
+        original_cover_status = self.game_logic._get_target_cover_status
+        self.game_logic._get_target_cover_status = lambda *args: "none"
+        
+        self.game_logic.d20.roll = mock_roll
 
         result = self.game_logic.handle_multiple_attacks(attacker, defender, self.test_weapon)
+        
+        # Restore original method
+        self.game_logic._get_target_cover_status = original_cover_status
 
         # Verify that multiple attacks occurred
         self.assertEqual(len(result.split('\n')), 2)
@@ -517,19 +582,41 @@ class TestNecromundaSimulation(unittest.TestCase):
         cover_tile = Tile(x=1, y=2, type=TileType.COVER, elevation=0)
         self.game_logic.game_state.battlefield.tiles.extend([elevation_tile, cover_tile])
 
-        # Mock minimum roll
-        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 1})()
+        # Create a counter to sequentially return different roll results
+        self.roll_counter = 0
+        
+        def mock_roll(_):
+            self.roll_counter += 1
+            if self.roll_counter == 1:  # Hit roll
+                return type('MockRoll', (), {'total': 6})()  # Critical hit with natural 6
+            elif self.roll_counter == 2:  # Wound roll
+                return type('MockRoll', (), {'total': 6})()  # Always wounds
+            elif self.roll_counter == 3:  # Save roll
+                return type('MockRoll', (), {'total': 1})()  # Failed save
+            elif self.roll_counter == 4:  # Injury dice
+                return type('MockRoll', (), {'total': 4})()  # Out of Action result (4-5)
+            return type('MockRoll', (), {'total': 6})()
+            
+        # Override the cover status check to return "none"
+        original_cover_status = self.game_logic._get_target_cover_status
+        self.game_logic._get_target_cover_status = lambda *args: "none"
+        
+        self.game_logic.d20.roll = mock_roll
 
         # Test combat with extreme conditions
         result = self.game_logic.resolve_combat(attacker, defender, self.test_weapon)
-        self.assertIn("ExtremeAttacker hit ExtremeDefender", result,
-                     "Even with extreme modifiers, a roll of 1 should always hit")
-
-        # Mock maximum roll
-        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 20})()
+        
+        # Restore original method
+        self.game_logic._get_target_cover_status = original_cover_status
+        
+        self.assertIn("ExtremeAttacker hit ExtremeDefender", result, "Critical hit should definitely land")
+        
+        # Now test a natural 1 miss case
+        self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 1})()
         result = self.game_logic.resolve_combat(attacker, defender, self.test_weapon)
-        self.assertIn("missed", result,
-                     "A roll of 20 should miss regardless of modifiers")
+        
+        # In Necromunda, natural 1s always miss, regardless of modifiers
+        self.assertIn("missed", result, "Natural 1 should always miss in melee per Necromunda rules")
 
     def test_weapon_traits_comprehensive(self):
         """Test comprehensive weapon trait effects."""
