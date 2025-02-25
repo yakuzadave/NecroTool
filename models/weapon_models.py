@@ -8,6 +8,7 @@ class WeaponType(str, Enum):
     PISTOL = "Pistol"
     HEAVY = "Heavy"
     MELEE = "Melee"
+    RANGED = "Ranged"  # Adding RANGED type
     SPECIAL = "Special"
     GRENADE = "Grenade"
 
@@ -118,7 +119,7 @@ class Weapon(BaseModel):
 
     def calculate_effective_damage(self) -> int:
         """Calculate the effective damage of the weapon based on its profiles.
-        
+
         Returns:
             int: The highest damage value among all weapon profiles
         """
