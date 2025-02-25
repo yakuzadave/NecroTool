@@ -2,7 +2,7 @@ import unittest
 from game_logic import GameLogic
 from database import Database
 from models.gang_models import Ganger, Gang, GangerRole, GangType
-from models.weapon_models import Weapon, WeaponProfile, WeaponType, WeaponTrait # Added import for WeaponTrait
+from models.weapon_models import Weapon, WeaponProfile, WeaponType, WeaponTrait, Rarity # Added Rarity import
 from models.armor_models import Armor, ArmorType
 from models import TileType, Tile
 
@@ -12,10 +12,13 @@ class TestNecromundaSimulation(unittest.TestCase):
         self.db = Database()
         self.game_logic = GameLogic(self.db)
 
-        # Create test weapon with correct range format
+        # Create test weapon with all required fields
         self.test_weapon = Weapon(
             name="Power Hammer",
             weapon_type=WeaponType.MELEE,
+            cost=25,  # Added required field
+            rarity=Rarity.COMMON,  # Added required field
+            description="A massive hammer crackling with power field energy",  # Added required field
             profiles=[
                 WeaponProfile(
                     range="Short: 0-1, Long: 1-2",
@@ -31,7 +34,7 @@ class TestNecromundaSimulation(unittest.TestCase):
             ]
         )
 
-        # Create test armor with correct attributes
+        # Create test armor with all required fields
         self.test_armor = Armor(
             name="Flak Armor",
             armor_type=ArmorType.FLACK,
@@ -285,6 +288,9 @@ class TestNecromundaSimulation(unittest.TestCase):
         power_weapon = Weapon(
             name="Power Sword",
             weapon_type=WeaponType.MELEE,
+            cost=40,
+            rarity=Rarity.RARE,
+            description="An energized blade that cuts through armor with ease",
             profiles=[
                 WeaponProfile(
                     range="Short: 0-1, Long: 1-2",
@@ -526,7 +532,7 @@ class TestNecromundaSimulation(unittest.TestCase):
 
     def test_weapon_traits_comprehensive(self):
         """Test comprehensive weapon trait effects."""
-        # Create a test fighter
+        # Create test fighters for weapon trait testing
         attacker = Ganger(
             name="Specialist",
             gang_affiliation=GangType.GOLIATH,
@@ -543,13 +549,36 @@ class TestNecromundaSimulation(unittest.TestCase):
             cool=6,
             will=6,
             intelligence=5,
-            has_moved=True  # For testing Heavy weapons
+            has_moved=True, # For testing Heavy weapons
+            armor=self.test_armor #Added armor for consistency
+        )
+
+        defender = Ganger(
+            name="Target",
+            gang_affiliation=GangType.ESCHER,
+            role=GangerRole.GANGER,
+            movement=4,
+            weapon_skill=3,
+            ballistic_skill=4,
+            strength=3,
+            toughness=3,
+            wounds=2,
+            initiative=4,
+            attacks=1,
+            leadership=7,
+            cool=7,
+            will=7,
+            intelligence=6,
+            armor=self.test_armor #Added armor for consistency
         )
 
         # Test various weapon types
         power_weapon = Weapon(
             name="Power Sword",
             weapon_type=WeaponType.MELEE,
+            cost=40,
+            rarity=Rarity.RARE,
+            description="An energized blade that cuts through armor with ease",
             traits=[WeaponTrait(name="Power", description="Power field adds devastating energy")],
             profiles=[WeaponProfile(
                 range="Short: 0-1, Long: 1-2",
@@ -567,6 +596,9 @@ class TestNecromundaSimulation(unittest.TestCase):
         heavy_weapon = Weapon(
             name="Heavy Bolter",
             weapon_type=WeaponType.RANGED,
+            cost=160,
+            rarity=Rarity.RARE,
+            description="A heavy automatic weapon that fires explosive rounds",
             traits=[
                 WeaponTrait(name="Heavy", description="Difficult to fire on the move"),
                 WeaponTrait(name="Sustained Fire", description="Multiple hits")
@@ -587,6 +619,9 @@ class TestNecromundaSimulation(unittest.TestCase):
         blast_weapon = Weapon(
             name="Grenade Launcher",
             weapon_type=WeaponType.RANGED,
+            cost=85,
+            rarity=Rarity.COMMON,
+            description="A launcher that fires explosive grenades",
             traits=[WeaponTrait(name="Blast", description="radius: 3")],
             profiles=[WeaponProfile(
                 range="Short: 0-12, Long: 12-24",
@@ -602,16 +637,16 @@ class TestNecromundaSimulation(unittest.TestCase):
         )
 
         # Test Power weapon traits
-        power_mods = self.game_logic.apply_weapon_traits(attacker, None, power_weapon)
+        power_mods = self.game_logic.apply_weapon_traits(attacker, defender, power_weapon)
         self.assertEqual(power_mods['ap'], 1)
         self.assertEqual(power_mods['to_wound'], 1)
 
         # Test Heavy weapon traits for moved shooter
-        heavy_mods = self.game_logic.apply_weapon_traits(attacker, None, heavy_weapon)
+        heavy_mods = self.game_logic.apply_weapon_traits(attacker, defender, heavy_weapon)
         self.assertEqual(heavy_mods['to_hit'], -1)
 
         # Test Blast weapon radius parsing
-        blast_mods = self.game_logic.apply_weapon_traits(attacker, None, blast_weapon)
+        blast_mods = self.game_logic.apply_weapon_traits(attacker, defender, blast_weapon)
         self.assertEqual(blast_mods['blast_radius'], 3)
 
     def test_special_combat_conditions(self):

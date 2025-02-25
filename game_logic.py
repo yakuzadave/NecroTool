@@ -200,7 +200,7 @@ class GameLogic:
         logging.debug(f"Weapon trait modifier: {weapon_trait_mods['to_hit']}")
 
         # Apply combat conditions
-        combat_condition_mods = self.check_combat_conditions(attacker, defender)
+        combat_condition_mods = self.check_combat_conditions(attacker, defender, weapon)
         total_modifier += combat_condition_mods['to_hit']
         logging.debug(f"Combat condition modifier: {combat_condition_mods['to_hit']}")
 
@@ -239,7 +239,7 @@ class GameLogic:
         wound_target -= weapon_trait_mods['to_wound']
 
         #Apply combat conditions
-        combat_condition_mods = self.check_combat_conditions(attacker, defender)
+        combat_condition_mods = self.check_combat_conditions(attacker, defender, weapon)
         wound_target -= combat_condition_mods['to_wound']
 
         wound_roll = self.d20.roll('1d20')
@@ -488,16 +488,8 @@ class GameLogic:
 
         return modifiers
 
-    def check_combat_conditions(self, attacker: Ganger, defender: Ganger) -> Dict[str, int]:
-        """Check various combat conditions and apply appropriate modifiers.
-
-        Args:
-            attacker: The attacking ganger
-            defender: The defending ganger
-
-        Returns:
-            Dict[str, int]: Dictionary of modifiers from combat conditions
-        """
+    def check_combat_conditions(self, attacker: Ganger, defender: Ganger, weapon: Optional[Weapon] = None) -> Dict[str, int]:
+        """Check various combat conditions and apply appropriate modifiers."""
         modifiers = {
             'to_hit': 0,
             'to_wound': 0,
@@ -514,7 +506,7 @@ class GameLogic:
             modifiers['to_wound'] += 1  # Goliaths get +1 to wound in close combat
             logging.debug(f"Goliath fighter gets +1 to wound")
         elif attacker.gang_affiliation == GangType.ESCHER:
-            if 'toxin' in [t.name.lower() for t in (weapon.traits if weapon else [])]:
+            if weapon and weapon.traits and any(t.name.lower() == 'toxin' for t in weapon.traits):
                 modifiers['to_wound'] += 1  # Eschers get +1 to wound with toxin weapons
 
         # Check for status effects
