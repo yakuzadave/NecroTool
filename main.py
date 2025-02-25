@@ -26,7 +26,8 @@ def create_sample_scenario():
         Scenario,
         ScenarioObjective,
         ScenarioDeploymentZone,
-        ScenarioSpecialRule
+        ScenarioSpecialRule,
+        ScenarioRewards
     )
     return Scenario(
         name="Turf War",
@@ -35,22 +36,32 @@ def create_sample_scenario():
             ScenarioObjective(
                 name="Control Central Zone",
                 description="Have more fighters than the enemy in the central 4x4 area at the end of the game.",
-                points=3
+                points=3,
+                rewards=["100 credits", "Territory Control card"]
             ),
             ScenarioObjective(
                 name="Eliminate Enemy Leader",
                 description="Take the enemy gang's leader out of action.",
-                points=2
+                points=2,
+                rewards=["50 credits", "Reputation +1"]
             )
         ],
         deployment_zones=[
             ScenarioDeploymentZone(
                 name="North Zone",
-                description="Deploy within 6\" of the north table edge."
+                description="Deploy within 6\" of the north table edge.",
+                starting_positions={
+                    "Goliath Gang": (0, 0),
+                    "Goliath Juve": (1, 0)
+                }
             ),
             ScenarioDeploymentZone(
                 name="South Zone",
-                description="Deploy within 6\" of the south table edge."
+                description="Deploy within 6\" of the south table edge.",
+                starting_positions={
+                    "Escher Gang": (0, 20),
+                    "Escher Champion": (1, 20)
+                }
             )
         ],
         special_rules=[
@@ -61,7 +72,11 @@ def create_sample_scenario():
         ],
         max_gangs=2,
         duration="6 turns",
-        rewards="The winning gang gains control of the territory, earning 100 credits per post-battle sequence."
+        rewards=ScenarioRewards(
+            credits=100,
+            reputation=5,
+            items=["Territory Control Card", "Rare Equipment Access"]
+        )
     )
 
 

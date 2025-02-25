@@ -1,6 +1,6 @@
 import logging
-import d20
-from typing import Optional, List, Dict, Any
+import d20  # Ensure the d20 package is installed
+from typing import Optional, List, Dict, Any, cast
 from models import GameState, Gang, Ganger, CombatRound, CombatPhase, PhaseName, Scenario, Battlefield, Tile, Weapon, WeaponProfile, TileType # Added imports for Weapon and WeaponProfile, TileType
 from models.gang_models import GangType, GangerRole
 from database import Database
@@ -158,7 +158,10 @@ class GameLogic:
 
         new_active_gang = self.get_active_gang()
         new_active_fighter = self.get_active_fighter()
-        return f"Activation ended. Active gang: {new_active_gang.name}, Active fighter: {new_active_fighter.name}"
+        
+        # Handle the case where new_active_fighter might be None
+        fighter_name = new_active_fighter.name if new_active_fighter else "None"
+        return f"Activation ended. Active gang: {new_active_gang.name}, Active fighter: {fighter_name}"
 
     def advance_combat_phase(self) -> None:
         current_round = self.get_current_combat_round()
@@ -348,7 +351,8 @@ class GameLogic:
 
     def get_active_gang(self) -> Gang:
         """Get the currently active gang."""
-        return self.game_state.gangs[self.game_state.active_gang_index]
+        # Use cast to help type checker understand we're getting a Gang from the list
+        return cast(Gang, self.game_state.gangs[self.game_state.active_gang_index])
 
     def get_active_fighter(self) -> Optional[Ganger]:
         """Get the currently active fighter."""
@@ -373,7 +377,8 @@ class GameLogic:
     def calculate_charge_distance(self, attacker: Ganger, target: Ganger) -> int:
         """Calculate the distance needed for a charge move."""
         if attacker.x is None or attacker.y is None or target.x is None or target.y is None:
-            return float('inf')
+            # Return a large integer value instead of infinity
+            return 9999  # Effectively infinite distance for game purposes
 
         return abs(attacker.x - target.x) + abs(attacker.y - target.y)
 
@@ -560,7 +565,8 @@ class GameLogic:
             logging.debug(f"Leader {attacker.name} provides leadership bonus")
 
         # Check for advantageous height position
-        if hasattr(attacker, 'elevation') and hasattr(defender, 'elevation'):
+        if (hasattr(attacker, 'elevation') and hasattr(defender, 'elevation') and
+            attacker.elevation is not None and defender.elevation is not None):
             if attacker.elevation > defender.elevation:
                 modifiers['to_hit'] += 1  # +1 to hit from higher ground
 
