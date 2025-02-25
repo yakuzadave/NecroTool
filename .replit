@@ -73,7 +73,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m unittest test_necromunda.py"
+args = "python -m unittest test_necromunda.py -v"
 
 [deployment]
 run = ["sh", "-c", "python main.py --test"]

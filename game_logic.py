@@ -150,3 +150,30 @@ class GameLogic:
                 if fighter.name.lower() == name.lower():
                     return fighter
         return None
+
+    def resolve_combat(self, attacker: Ganger, defender: Ganger) -> str:
+        """Resolve combat between two gangers.
+
+        Args:
+            attacker: The attacking ganger
+            defender: The defending ganger
+
+        Returns:
+            str: Description of the combat result
+        """
+        # Roll to hit using weapon skill
+        hit_roll = self.d20.roll('1d20')
+
+        # Check if the attack hits (WS roll under)
+        if hit_roll.total <= (attacker.weapon_skill * 3):
+            # Calculate wound
+            strength_diff = attacker.strength - defender.toughness
+            if strength_diff >= 0:  # Equal or higher strength
+                defender.wounds -= 1
+                if defender.wounds <= 0:
+                    defender.is_out_of_action = True
+                return f"{attacker.name} hit and wounded {defender.name}"
+            else:
+                return f"{attacker.name} hit but failed to wound {defender.name}"
+
+        return f"{attacker.name} missed {defender.name}"

@@ -10,6 +10,7 @@ class ScenarioObjective(BaseModel):
     points: Annotated[NonNegativeInt, Field(default=0, description="Victory points awarded for completing this objective.")]
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
@@ -23,15 +24,18 @@ class ScenarioObjective(BaseModel):
         }
     }
 
+class ScenarioSpecialRule(BaseModel):
+    """Represents a special rule that applies to a specific scenario."""
+    name: Annotated[str, Field(description="Name of the special rule.")]
+    effect: Annotated[Optional[str], Field(description="Description of the rule's effect on gameplay.")]
+
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
-                    "name": "Capture Territory",
-                    "description": "Control the central objective marker for 2 turns",
-                    "rewards": ["100 credits", "Territory card"],
-                    "completed": False,
-                    "points": 3
+                    "name": "Darkness",
+                    "effect": "All shooting attacks suffer -1 to hit"
                 }
             ]
         }
@@ -46,6 +50,7 @@ class ScenarioDeploymentZone(BaseModel):
     )]
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
@@ -55,37 +60,6 @@ class ScenarioDeploymentZone(BaseModel):
                         "Goliaths": (0, 0),
                         "Eschers": (1, 0)
                     }
-                }
-            ]
-        }
-    }
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "name": "North Zone",
-                    "description": "Deploy within 6\" of the north table edge",
-                    "starting_positions": {
-                        "Goliaths": (0, 0),
-                        "Eschers": (1, 0)
-                    }
-                }
-            ]
-        }
-    }
-
-class ScenarioSpecialRule(BaseModel):
-    """Represents a special rule that applies to a specific scenario."""
-    name: Annotated[str, Field(description="Name of the special rule.")]
-    effect: Annotated[Optional[str], Field(description="Description of the rule's effect on gameplay.")]
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "name": "Darkness",
-                    "effect": "All shooting attacks suffer -1 to hit"
                 }
             ]
         }
@@ -98,6 +72,7 @@ class ScenarioRewards(BaseModel):
     items: Annotated[Optional[List[str]], Field(default=None, description="Special equipment rewards")]
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
@@ -124,6 +99,7 @@ class Scenario(BaseModel):
     rewards: Annotated[Optional[ScenarioRewards], Field(description="Rewards for winning the scenario.")]
 
     model_config = {
+        "validate_assignment": True,
         "json_schema_extra": {
             "examples": [
                 {
