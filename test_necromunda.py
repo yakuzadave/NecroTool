@@ -96,7 +96,7 @@ class TestNecromundaSimulation(unittest.TestCase):
             elif self.roll_counter == 3:  # Save roll
                 return type('MockRoll', (), {'total': 1})()  # Natural 1 always fails
             elif self.roll_counter == 4:  # Injury roll
-                return type('MockRoll', (), {'total': 4})()  # 4 is OUT_OF_ACTION (4-5)
+                return type('MockRoll', (), {'total': 6})()  # 6 is OUT_OF_ACTION in the updated rules
             return type('MockRoll', (), {'total': 6})()
             
         self.game_logic.d20.roll = mock_roll
@@ -129,7 +129,7 @@ class TestNecromundaSimulation(unittest.TestCase):
 
         # Override the cover status check to return "none"
         original_cover_status = self.game_logic._get_target_cover_status
-        self.game_logic._get_target_cover_status = lambda *args: "none"
+        self.game_logic._get_target_cover_status = lambda attacker, defender: "none"
         
         # Create a custom weapon with low AP that won't negate the save
         weapon = Weapon(
@@ -278,12 +278,12 @@ class TestNecromundaSimulation(unittest.TestCase):
             elif self.roll_counter % 4 == 3:  # Save roll
                 return type('MockRoll', (), {'total': 1})()  # Natural 1 always fails save
             elif self.roll_counter % 4 == 0:  # Injury roll
-                return type('MockRoll', (), {'total': 4})()  # 4 is OUT_OF_ACTION (4-5)
+                return type('MockRoll', (), {'total': 6})()  # 6 is OUT_OF_ACTION in updated rules
             return type('MockRoll', (), {'total': 6})()
             
         # Override the cover status check to return "none"
         original_cover_status = self.game_logic._get_target_cover_status
-        self.game_logic._get_target_cover_status = lambda *args: "none"
+        self.game_logic._get_target_cover_status = lambda attacker, defender: "none"
         
         self.game_logic.d20.roll = mock_roll
 
@@ -594,12 +594,12 @@ class TestNecromundaSimulation(unittest.TestCase):
             elif self.roll_counter == 3:  # Save roll
                 return type('MockRoll', (), {'total': 1})()  # Failed save
             elif self.roll_counter == 4:  # Injury dice
-                return type('MockRoll', (), {'total': 4})()  # Out of Action result (4-5)
+                return type('MockRoll', (), {'total': 6})()  # Out of Action result (6)
             return type('MockRoll', (), {'total': 6})()
             
         # Override the cover status check to return "none"
         original_cover_status = self.game_logic._get_target_cover_status
-        self.game_logic._get_target_cover_status = lambda *args: "none"
+        self.game_logic._get_target_cover_status = lambda attacker, defender: "none"
         
         self.game_logic.d20.roll = mock_roll
 
