@@ -69,6 +69,10 @@ class Ganger(BaseModel):
     is_seriously_injured: Annotated[bool, Field(default=False, description="Indicates if the fighter is seriously injured.")]
     is_prone: Annotated[bool, Field(default=False, description="Indicates if the fighter is prone.")]
     status: Annotated[Optional[str], Field(default=None, description="Current status (e.g., 'Flesh Wound').")]
+    # Added new attributes for combat system
+    is_charging: Annotated[bool, Field(default=False, description="Indicates if the fighter is charging.")]
+    has_moved: Annotated[bool, Field(default=False, description="Indicates if the fighter has moved this activation.")]
+    elevation: Annotated[Optional[int], Field(default=0, description="Current elevation of the fighter.")]
 
     model_config = {
         "arbitrary_types_allowed": True,

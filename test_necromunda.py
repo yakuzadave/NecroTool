@@ -137,7 +137,8 @@ class TestNecromundaSimulation(unittest.TestCase):
             will=6,
             intelligence=5,
             x=0,
-            y=0
+            y=0,
+            is_charging=True  # Added required attribute
         )
 
         defender = Ganger(
@@ -356,7 +357,7 @@ class TestNecromundaSimulation(unittest.TestCase):
         )
 
         # Test combat condition modifiers
-        condition_mods = self.game_logic.check_combat_conditions(attacker, defender)
+        condition_mods = self.game_logic.check_combat_conditions(attacker, defender, None)
         self.assertEqual(condition_mods['to_hit'], 2, "Should get +1 for charging and +1 for prone target")
         self.assertEqual(condition_mods['to_wound'], 1, "Goliath should get +1 to wound")
 
@@ -693,7 +694,7 @@ class TestNecromundaSimulation(unittest.TestCase):
         )
 
         # Test leadership and elevation bonuses
-        condition_mods = self.game_logic.check_combat_conditions(leader, defender)
+        condition_mods = self.game_logic.check_combat_conditions(leader, defender, None)
         self.assertEqual(condition_mods['leadership_bonus'], 1)
         self.assertEqual(condition_mods['to_hit'], 2)  # +1 from height, +1 from prone target
 
