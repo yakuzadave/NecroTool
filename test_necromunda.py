@@ -115,7 +115,7 @@ class TestNecromundaSimulation(unittest.TestCase):
 
         # Mock a successful armor save
         self.game_logic.d20.roll = lambda _: type('MockRoll', (), {'total': 15})()
-        save_success, msg = self.game_logic.resolve_armor_save(defender, self.test_weapon)
+        save_success, msg, roll = self.game_logic.resolve_armor_save(defender, self.test_weapon)
         self.assertTrue(save_success)
 
     def test_charge_mechanics(self):

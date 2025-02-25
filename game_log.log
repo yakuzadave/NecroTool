@@ -117,3 +117,31 @@ AttributeError: 'GameLogic' object has no attribute 'attack'
 2025-02-25 19:22:43,687 - INFO - Command executed: status
 2025-02-25 19:22:43,691 - INFO - Command executed: objectives
 2025-02-25 19:22:43,694 - INFO - Command executed: victory_points
+2025-02-25 19:31:09,477 - INFO - Logging setup complete.
+2025-02-25 19:31:09,480 - INFO - Created new combat round: 1
+2025-02-25 19:31:09,480 - INFO - GameLogic initialized
+2025-02-25 19:31:09,484 - INFO - Sample scenario initialized.
+2025-02-25 19:31:09,484 - INFO - UserInterface initialized
+2025-02-25 19:34:47,685 - INFO - Logging setup complete.
+2025-02-25 19:34:47,687 - INFO - Created new combat round: 1
+2025-02-25 19:34:47,687 - INFO - GameLogic initialized
+2025-02-25 19:34:47,691 - INFO - Sample scenario initialized.
+2025-02-25 19:34:47,691 - INFO - UserInterface initialized
+2025-02-25 19:34:52,182 - INFO - Logging setup complete.
+2025-02-25 19:34:52,185 - INFO - Created new combat round: 1
+2025-02-25 19:34:52,185 - INFO - GameLogic initialized
+2025-02-25 19:34:52,189 - INFO - Sample scenario initialized.
+2025-02-25 19:34:52,189 - INFO - UserInterface initialized
+2025-02-25 19:34:52,191 - INFO - Resolving ranged combat between Crusher and Venom
+2025-02-25 19:34:52,191 - INFO - Calculating ranged hit success for Crusher vs Venom
+2025-02-25 19:34:52,192 - INFO - Automatic miss! Natural 1 rolled
+2025-02-25 19:34:52,193 - ERROR - An unexpected error occurred in CLI loop: EOF when reading a line
+Traceback (most recent call last):
+  File "/home/runner/workspace/cli.py", line 22, in run_cli
+    command = console.input("\n[bold cyan]Enter command:[/bold cyan] ").strip()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/rich/console.py", line 2151, in input
+    result = input()
+             ^^^^^^^
+EOFError: EOF when reading a line
+2025-02-25 19:34:52,195 - INFO - Necromunda Simulation ended.

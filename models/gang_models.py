@@ -25,6 +25,23 @@ class GangerRole(str, Enum):
     GANGER = "Ganger"
     JUVENILE = "Juve"
     SPECIALIST = "Specialist"
+    
+    
+class InjuryResult(str, Enum):
+    """Represents the result of an injury dice roll."""
+    FLESH_WOUND = "Flesh Wound"
+    SERIOUS_INJURY = "Serious Injury"
+    OUT_OF_ACTION = "Out of Action"
+    RECOVERED = "Recovered"
+    DOWN = "Down"
+    
+    
+class InjurySeverity(str, Enum):
+    """Represents the severity of an injury."""
+    MINOR = "Minor"
+    MAJOR = "Major"
+    CRITICAL = "Critical"
+    MEMORABLE = "Memorable"
 
 
 class Injury(BaseModel):

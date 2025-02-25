@@ -61,7 +61,7 @@ class UserInterface:
             ("help", "Show this help message"),
             ("status", "Show detailed status of all gang members"),
             ("move <fighter_name> <x> <y>", "Move the active fighter"),
-            ("attack <attacker_name> <target_name>", "Attack with the active fighter"),
+            ("attack <attacker_name> <target_name> [weapon_name] [attack_type]", "Perform an attack (attack_type can be 'melee', 'ranged', or 'auto')"),
             ("end_activation", "End the current fighter's activation"),
             ("save", "Save the current game state"),
             ("map", "Show the battlefield map"),
@@ -161,10 +161,39 @@ class UserInterface:
         self.console.print(f"Move {'successful' if result else 'failed'}")
 
     def _handle_attack(self, args: list) -> None:
-        """Handle the attack command."""
-        if len(args) != 2:
-            raise ValueError("Invalid attack command. Use: attack <attacker_name> <target_name>")
-        result = self.game_logic.attack(args[0], args[1])
+        """
+        Handle the attack command with enhanced options.
+        
+        Usage:
+            attack <attacker_name> <target_name> [weapon_name] [attack_type]
+            
+        Arguments:
+            attacker_name: Name of the attacking fighter
+            target_name: Name of the target fighter
+            weapon_name: (Optional) Name of the weapon to use
+            attack_type: (Optional) Type of attack: "melee" or "ranged"
+        """
+        if len(args) < 2:
+            raise ValueError("Invalid attack command. Use: attack <attacker_name> <target_name> [weapon_name] [attack_type]")
+            
+        # Parse arguments
+        attacker_name = args[0]
+        target_name = args[1]
+        
+        # Optional parameters
+        weapon_name = None
+        attack_type = "auto"
+        
+        if len(args) >= 3:
+            weapon_name = args[2]
+            
+        if len(args) >= 4:
+            attack_type = args[3].lower()
+            if attack_type not in ["melee", "ranged", "auto"]:
+                raise ValueError("Invalid attack type. Must be 'melee', 'ranged', or 'auto'")
+        
+        # Execute the attack
+        result = self.game_logic.attack(attacker_name, target_name, weapon_name, attack_type)
         self.console.print(result)
 
     def _handle_end_activation(self, _: list) -> None:
@@ -227,8 +256,19 @@ class UserInterface:
 
     def check_scenario_objectives(self, _: Optional[List[str]] = None) -> None:
         """Check and update scenario objectives."""
-        self.game_logic.check_scenario_objectives()
-        self.show_mission_objectives()
+        try:
+            completed_objectives = self.game_logic.check_scenario_objectives()
+            if completed_objectives:
+                self.console.print("[bold green]Objectives Completed:[/bold green]")
+                for objective in completed_objectives:
+                    self.console.print(f"- {objective['name']} ({objective['points']} points) by {objective['gang']}")
+            else:
+                self.console.print("[yellow]No new objectives completed yet.[/yellow]")
+            
+            self.show_mission_objectives()
+        except Exception as e:
+            self.console.print(f"[bold red]Error checking objectives:[/bold red] {str(e)}")
+            logging.error(f"Error in check_scenario_objectives: {str(e)}", exc_info=True)
 
     def _handle_create_gang_member(self, args: list) -> None:
         """Handle creating a custom gang member."""
